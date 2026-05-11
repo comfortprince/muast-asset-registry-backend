@@ -12,11 +12,20 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.oauth2.jwt.JwtDecoder;
+import org.springframework.security.oauth2.jwt.JwtEncoder;
+import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
+import org.springframework.security.oauth2.jwt.NimbusJwtEncoder;
 import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+
+import com.nimbusds.jose.jwk.JWK;
+import com.nimbusds.jose.jwk.JWKSet;
+import com.nimbusds.jose.jwk.RSAKey;
+import com.nimbusds.jose.jwk.source.ImmutableJWKSet;
+import com.nimbusds.jose.jwk.source.JWKSource;
+import com.nimbusds.jose.proc.SecurityContext;
 
 import ac.muast.it.asset_registry.security.CustomUserDetailsService;
-import ac.muast.it.asset_registry.security.JwtAuthenticationFilter;
 import lombok.RequiredArgsConstructor;
 
 @Configuration
@@ -24,7 +33,7 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class SecurityConfig {
   private final CustomUserDetailsService userDetailsService;
-  private final JwtAuthenticationFilter jwtAuthenticationFilter;
+  private final RsaKeyProperties rsaKeys;
 
   @Bean
   public SecurityFilterChain filterChain(HttpSecurity http, AuthenticationProvider authenticationProvider) throws Exception {
@@ -39,14 +48,13 @@ public class SecurityConfig {
           ).permitAll()
           .anyRequest().authenticated()
       )
+      .oauth2ResourceServer(oauth2 -> oauth2
+        .jwt(Customizer.withDefaults())
+      )
       .sessionManagement(session -> 
           session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
       .authenticationProvider(authenticationProvider)
-      .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
       .httpBasic(Customizer.withDefaults());
-
-    // Why? - Allow H2 console in development
-    http.headers(headers -> headers.frameOptions(frame -> frame.disable()));
 
     return http.build();
   }
@@ -66,5 +74,17 @@ public class SecurityConfig {
   @Bean
   public PasswordEncoder passwordEncoder() {
     return new BCryptPasswordEncoder();
+  }
+
+  @Bean
+  JwtDecoder jwtDecoder() {
+    return NimbusJwtDecoder.withPublicKey(rsaKeys.publicKey()).build();
+  }
+
+  @Bean
+  JwtEncoder jwtEncoder(){
+    JWK jwk = new RSAKey.Builder(rsaKeys.publicKey()).privateKey(rsaKeys.privateKey()).build();
+    JWKSource<SecurityContext> jwks = new ImmutableJWKSet<>(new JWKSet(jwk));
+    return new NimbusJwtEncoder(jwks);
   }
 }

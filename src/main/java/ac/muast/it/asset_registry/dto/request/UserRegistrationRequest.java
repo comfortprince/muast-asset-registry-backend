@@ -3,10 +3,12 @@ package ac.muast.it.asset_registry.dto.request;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
+import lombok.Builder;
 import lombok.Data;
 import java.util.Set;
 
 @Data
+@Builder
 public class UserRegistrationRequest {
     
     @NotBlank(message = "Username is required")

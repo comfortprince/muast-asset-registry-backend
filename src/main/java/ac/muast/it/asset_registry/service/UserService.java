@@ -119,6 +119,18 @@ public class UserService {
       userRepository.save(user);
     }
 
+    @Transactional
+    public void deleteUser(Long id) {
+      userRepository.findById(id)
+        .orElseThrow(() -> new ResourceNotFoundException("User not found with id: " + id));
+      userRepository.deleteById(id);;
+    }
+
+    @Transactional
+    public void disableUser(Long id){
+        toggleUserStatus(id, false);
+    }
+
     public List<User> getUsersByRole(String roleName) {
       return userRepository.findAll()
         .stream()
@@ -140,5 +152,13 @@ public class UserService {
             .lastLogin(user.getLastLogin())
             .createdAt(user.getCreatedAt())
             .build();
+    }
+
+    public boolean existsByUsername(String username){
+        return userRepository.existsByUsername(username);
+    }
+
+    public boolean existsByEmail(String email){
+        return userRepository.existsByEmail(email);
     }
 }

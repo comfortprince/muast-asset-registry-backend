@@ -15,7 +15,10 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
+import lombok.extern.slf4j.Slf4j;
+
 @RestControllerAdvice
+@Slf4j
 public class GlobalExceptionHandler {
   @ResponseStatus(HttpStatus.CONFLICT)
   @ExceptionHandler(UserAlreadyExistsException.class)
@@ -25,6 +28,7 @@ public class GlobalExceptionHandler {
       ex.getMessage()
     );
     problemDetail.setProperty("errorCode", ErrorCodes.USER_ALREADY_EXISTS);
+    log.error("User Already Exists", ex);
     return problemDetail;
   }
 
@@ -36,6 +40,7 @@ public class GlobalExceptionHandler {
       ex.getMessage()
     );
     problemDetail.setProperty("errorCode", ErrorCodes.INVALID_CREDENTIALS);
+    log.error("Bad Credentials", ex); 
     return problemDetail;
   }
 
@@ -48,6 +53,7 @@ public class GlobalExceptionHandler {
     );
     problemDetail.setTitle("Resource Not Found");
     problemDetail.setProperty("errorCode", ErrorCodes.USER_NOT_FOUND);
+    log.error("User Not Found", ex);
     return problemDetail;
   }
 
@@ -73,6 +79,8 @@ public class GlobalExceptionHandler {
     problemDetail.setProperty("errorCode", ErrorCodes.VALIDATION_ERROR);
     problemDetail.setProperty("fieldErrors", fieldErrors);
     
+    log.error("Invalid Input", ex);
+
     return problemDetail;
   }
 
@@ -85,6 +93,7 @@ public class GlobalExceptionHandler {
     );
     problemDetail.setTitle("Account Locked");
     problemDetail.setProperty("errorCode", ErrorCodes.ACCOUNT_LOCKED);
+    log.error("Account Locked", ex);
     return problemDetail;
   }
 
@@ -97,6 +106,7 @@ public class GlobalExceptionHandler {
     );
     problemDetail.setTitle("Account Disabled");
     problemDetail.setProperty("errorCode", ErrorCodes.ACCOUNT_DISABLED);
+    log.error("Account Disabled", ex);
     return problemDetail;
   }
 }

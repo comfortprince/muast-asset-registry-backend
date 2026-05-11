@@ -39,6 +39,6 @@ public class CustomUserDetailsService implements UserDetailsService {
 			throw new CredentialsExpiredException("User credentials have expired");
 		}
 
-		return user;
+		return (UserDetails) user;
 	}
 }

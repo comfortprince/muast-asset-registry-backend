@@ -1,22 +1,19 @@
 package ac.muast.it.asset_registry.controller;
 
+import java.security.Principal;
 import java.time.LocalDateTime;
 
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import ac.muast.it.asset_registry.annotation.LoginOperation;
-import ac.muast.it.asset_registry.dto.request.LoginRequest;
 import ac.muast.it.asset_registry.dto.response.AuthResponse;
 import ac.muast.it.asset_registry.model.User;
-import ac.muast.it.asset_registry.security.JwtUtil;
+import ac.muast.it.asset_registry.service.JwtService;
 import ac.muast.it.asset_registry.service.UserService;
-import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -25,34 +22,23 @@ import lombok.extern.slf4j.Slf4j;
 @RequiredArgsConstructor
 @Slf4j
 public class AuthController {
-  private final AuthenticationManager authenticationManager;
+
+  private final JwtService jwtService;
   private final UserService userService;
-  private final JwtUtil jwtUtil;
 
   @LoginOperation
   @PostMapping("/login")
-  public ResponseEntity<AuthResponse> login(@Valid @RequestBody LoginRequest request) {
-    // Create Unauthenticated token with raw credentials
-    UsernamePasswordAuthenticationToken unauthenticatedToken 
-      = new UsernamePasswordAuthenticationToken(request.getUsername(), request.getPassword());
-    
-    // Call AuthenticationManager to VERIFY credentials
-    authenticationManager.authenticate(unauthenticatedToken);
+  public ResponseEntity<AuthResponse> login(Authentication authentication, Principal p) {
+    User user = userService.getUserByUsername(p.getName());
+    long expirationTime = 60; // minutes
+    String jwt = jwtService.generateToken(authentication, expirationTime);
 
-    User user = userService.getUserByUsername(request.getUsername());
-
-    // Why? - Generate tokens
-    String accessToken = jwtUtil.generateAccessToken(user);
-    String refreshToken = jwtUtil.generateRefreshToken(user);
-      
-    // Update last login
     user.setLastLogin(LocalDateTime.now());
     user = userService.updateUser(
       user.getId(),
       user
     );
-      
-    // Build response
+
     AuthResponse.UserInfo userInfo = AuthResponse.UserInfo.builder()
       .id(user.getId())
       .username(user.getUsername())
@@ -62,12 +48,11 @@ public class AuthController {
       .build();
 
     AuthResponse response = AuthResponse.builder()
-      .accessToken(accessToken)
-      .refreshToken(refreshToken)
-      .expiresIn(86400000L) // 24 hours
+      .accessToken(jwt)
+      .expiresIn(expirationTime)
       .user(userInfo)
       .build();
-      
+    
     return ResponseEntity.ok(response);
   }
 }
