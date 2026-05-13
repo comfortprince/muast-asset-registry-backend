@@ -33,4 +33,6 @@ public final class ErrorCodes {
     // ===== GENERAL =====
     public static final String INTERNAL_ERROR = "INTERNAL_ERROR";
     public static final String BAD_REQUEST = "BAD_REQUEST";
+
+    public static final String DATA_INTEGRITY_VIOLATION = "DATA_INTEGRITY_VIOLATION";
 }
