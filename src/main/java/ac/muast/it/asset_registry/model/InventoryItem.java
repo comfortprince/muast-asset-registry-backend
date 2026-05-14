@@ -1,4 +1,3 @@
-// model/InventoryItem.java
 package ac.muast.it.asset_registry.model;
 
 import jakarta.persistence.*;
@@ -10,7 +9,7 @@ import java.util.List;
 
 @Entity
 @Table(name = "inventory_items", uniqueConstraints = {
-    @UniqueConstraint(columnNames = {"asset_type_id", "model_id", "current_location_id"})
+    @UniqueConstraint(columnNames = {"asset_type_id", "brand", "location_id"})
 })
 @Data
 @NoArgsConstructor
@@ -28,24 +27,30 @@ public class InventoryItem {
     @EqualsAndHashCode.Exclude
     private AssetType assetType;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "model_id")
-    @ToString.Exclude
-    @EqualsAndHashCode.Exclude
-    private Model model;
+    @Column(length = 50)
+    private String brand;
 
     @Column(nullable = false, length = 200)
-    private String name;              // e.g., "HP CF277X Toner Cartridge"
+    private String name;
 
     @Column(nullable = false)
     @Builder.Default
     private Integer quantity = 0;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "current_location_id")
+    @JoinColumn(name = "location_id")
     @ToString.Exclude
     @EqualsAndHashCode.Exclude
-    private Office currentLocation;
+    private Office location;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "linked_asset_id")
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
+    private Asset linkedAsset;
+
+    @Column(columnDefinition = "JSON")
+    private String specs;
 
     @Column(columnDefinition = "TEXT")
     private String notes;

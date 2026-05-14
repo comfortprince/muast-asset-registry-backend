@@ -1,4 +1,3 @@
-// model/GrvItem.java
 package ac.muast.it.asset_registry.model;
 
 import jakarta.persistence.*;
@@ -30,20 +29,11 @@ public class GrvItem {
     @EqualsAndHashCode.Exclude
     private AssetType assetType;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "model_id")
-    @ToString.Exclude
-    @EqualsAndHashCode.Exclude
-    private Model model;
+    @Column(length = 50)
+    private String brand;
 
     @Column(name = "serial_number", length = 100)
     private String serialNumber;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "status_id")
-    @ToString.Exclude
-    @EqualsAndHashCode.Exclude
-    private Status status;
 
     @Column(columnDefinition = "TEXT")
     private String notes;

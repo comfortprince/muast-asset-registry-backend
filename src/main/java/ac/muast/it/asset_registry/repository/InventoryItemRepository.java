@@ -8,11 +8,12 @@ import java.util.List;
 import java.util.Optional;
 
 public interface InventoryItemRepository extends JpaRepository<InventoryItem, Long> {
-    List<InventoryItem> findByCurrentLocationId(Long officeId);
+    List<InventoryItem> findByLocationId(Long officeId);
     List<InventoryItem> findByAssetTypeId(Long assetTypeId);
-    Optional<InventoryItem> findByAssetTypeIdAndModelIdAndCurrentLocationId(
-        Long assetTypeId, Long modelId, Long locationId);
+    List<InventoryItem> findByLinkedAssetId(Long assetId);
+    Optional<InventoryItem> findByAssetTypeIdAndBrandAndLocationId(
+        Long assetTypeId, String brand, Long locationId);
 
-    @Query("SELECT i FROM InventoryItem i WHERE i.quantity <= 5")
+    @Query("SELECT i FROM InventoryItem i WHERE i.quantity <= :threshold")
     List<InventoryItem> findLowStock(int threshold);
 }

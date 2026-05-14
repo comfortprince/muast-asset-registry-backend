@@ -1,9 +1,9 @@
-// model/Asset.java
 package ac.muast.it.asset_registry.model;
 
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -22,13 +22,13 @@ public class Asset {
     private Long id;
 
     @Column(name = "asset_code", unique = true, nullable = false, length = 50)
-    private String assetCode;         // e.g., "CSC-DSK-001"
+    private String assetCode;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "grv_item_id")
     @ToString.Exclude
     @EqualsAndHashCode.Exclude
-    private GrvItem grvItem;          // Nullable — legacy assets have no GRV
+    private GrvItem grvItem;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "asset_type_id", nullable = false)
@@ -36,23 +36,29 @@ public class Asset {
     @EqualsAndHashCode.Exclude
     private AssetType assetType;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "model_id")
-    @ToString.Exclude
-    @EqualsAndHashCode.Exclude
-    private Model model;
+    @Column(length = 50)
+    private String brand;
 
     @Column(name = "serial_number", unique = true, length = 100)
     private String serialNumber;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "status_id", nullable = false)
-    @ToString.Exclude
-    @EqualsAndHashCode.Exclude
-    private Status status;
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 30)
+    @Builder.Default
+    private AssetStatus status = AssetStatus.AVAILABLE;
 
     @Column(name = "purchase_date")
     private LocalDate purchaseDate;
+
+    @Column(name = "purchase_cost", precision = 10, scale = 2)
+    private BigDecimal purchaseCost;
+
+    @Column(name = "replacement_threshold", precision = 10, scale = 2)
+    private BigDecimal replacementThreshold;
+
+    @Column(name = "total_consumable_cost", precision = 10, scale = 2)
+    @Builder.Default
+    private BigDecimal totalConsumableCost = BigDecimal.ZERO;
 
     @Column(columnDefinition = "JSON")
     private String specs;
@@ -89,7 +95,6 @@ public class Asset {
         updatedAt = LocalDateTime.now();
     }
 
-    // Helper — get current location
     public AssetLocation getCurrentLocation() {
         return locations.stream()
             .filter(AssetLocation::getIsCurrent)
@@ -97,7 +102,6 @@ public class Asset {
             .orElse(null);
     }
 
-    // Helper — get current assignment
     public AssetAssignment getCurrentAssignment() {
         return assignments.stream()
             .filter(AssetAssignment::getIsCurrent)

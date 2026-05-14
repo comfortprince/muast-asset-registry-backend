@@ -436,29 +436,31 @@ class AppRoutes {
 -- 1. AUTHENTICATION & USER MANAGEMENT
 -- =============================================
 
--- Users table
 CREATE TABLE users (
     id BIGINT PRIMARY KEY AUTO_INCREMENT,
     username VARCHAR(50) UNIQUE NOT NULL,
     email VARCHAR(100) UNIQUE NOT NULL,
     first_name VARCHAR(50) NOT NULL,
     last_name VARCHAR(50) NOT NULL,
-    password_hash VARCHAR(255) NOT NULL,
-    must_change_password BOOLEAN DEFAULT TRUE,
-    is_active BOOLEAN DEFAULT TRUE,
+    password VARCHAR(255) NOT NULL,
+    must_change_password BOOLEAN DEFAULT FALSE,
+    enabled BOOLEAN DEFAULT TRUE,
+    account_non_expired BOOLEAN DEFAULT TRUE,
+    account_non_locked BOOLEAN DEFAULT TRUE,
+    credentials_non_expired BOOLEAN DEFAULT TRUE,
+    reset_token VARCHAR(255),
+    reset_token_expiry TIMESTAMP,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     last_login TIMESTAMP NULL
 );
 
--- Roles table
 CREATE TABLE roles (
     id BIGINT PRIMARY KEY AUTO_INCREMENT,
     name VARCHAR(50) UNIQUE NOT NULL,
     description TEXT
 );
 
--- Permissions table
 CREATE TABLE permissions (
     id BIGINT PRIMARY KEY AUTO_INCREMENT,
     name VARCHAR(100) UNIQUE NOT NULL,
@@ -467,7 +469,6 @@ CREATE TABLE permissions (
     module VARCHAR(50)
 );
 
--- User-Role junction
 CREATE TABLE user_roles (
     user_id BIGINT NOT NULL,
     role_id BIGINT NOT NULL,
@@ -476,7 +477,6 @@ CREATE TABLE user_roles (
     FOREIGN KEY (role_id) REFERENCES roles(id) ON DELETE CASCADE
 );
 
--- Role-Permission junction
 CREATE TABLE role_permissions (
     role_id BIGINT NOT NULL,
     permission_id BIGINT NOT NULL,
@@ -489,7 +489,6 @@ CREATE TABLE role_permissions (
 -- 2. LOCATION MANAGEMENT
 -- =============================================
 
--- Campuses table
 CREATE TABLE campuses (
     id BIGINT PRIMARY KEY AUTO_INCREMENT,
     name VARCHAR(10) UNIQUE NOT NULL,
@@ -497,7 +496,6 @@ CREATE TABLE campuses (
     address TEXT
 );
 
--- Offices table
 CREATE TABLE offices (
     id BIGINT PRIMARY KEY AUTO_INCREMENT,
     campus_id BIGINT NOT NULL,
@@ -513,7 +511,6 @@ CREATE TABLE offices (
 -- 3. ASSET CATALOG
 -- =============================================
 
--- Categories table
 CREATE TABLE categories (
     id BIGINT PRIMARY KEY AUTO_INCREMENT,
     name VARCHAR(50) UNIQUE NOT NULL,
@@ -521,7 +518,6 @@ CREATE TABLE categories (
     description TEXT
 );
 
--- Asset Types table
 CREATE TABLE asset_types (
     id BIGINT PRIMARY KEY AUTO_INCREMENT,
     category_id BIGINT NOT NULL,
@@ -530,51 +526,14 @@ CREATE TABLE asset_types (
     description TEXT,
     track_individual BOOLEAN DEFAULT TRUE,
     track_quantity BOOLEAN DEFAULT FALSE,
-    allow_temporary_loans BOOLEAN DEFAULT FALSE,
-    has_service_records BOOLEAN DEFAULT FALSE,
     UNIQUE KEY uk_category_asset_type (category_id, name),
     FOREIGN KEY (category_id) REFERENCES categories(id) ON DELETE CASCADE
 );
 
--- Models table
-CREATE TABLE models (
-    id BIGINT PRIMARY KEY AUTO_INCREMENT,
-    asset_type_id BIGINT NOT NULL,
-    brand VARCHAR(50) NOT NULL,
-    model_number VARCHAR(100) NOT NULL,
-    specs JSON,
-    UNIQUE KEY uk_asset_type_brand_model (asset_type_id, brand, model_number),
-    FOREIGN KEY (asset_type_id) REFERENCES asset_types(id) ON DELETE CASCADE
-);
-
 -- =============================================
--- 4. STATUS MANAGEMENT
+-- 4. GRV MODULE (Goods Received)
 -- =============================================
 
--- Statuses table
-CREATE TABLE statuses (
-    id BIGINT PRIMARY KEY AUTO_INCREMENT,
-    name VARCHAR(30) UNIQUE NOT NULL,
-    display_name VARCHAR(50) NOT NULL,
-    description TEXT
-);
-
--- Asset Type-Status junction
-CREATE TABLE asset_type_statuses (
-    asset_type_id BIGINT NOT NULL,
-    status_id BIGINT NOT NULL,
-    is_default BOOLEAN DEFAULT FALSE,
-    sort_order INT DEFAULT 0,
-    PRIMARY KEY (asset_type_id, status_id),
-    FOREIGN KEY (asset_type_id) REFERENCES asset_types(id) ON DELETE CASCADE,
-    FOREIGN KEY (status_id) REFERENCES statuses(id) ON DELETE CASCADE
-);
-
--- =============================================
--- 5. GRV MODULE (Goods Received)
--- =============================================
-
--- GRV Entries table
 CREATE TABLE grv_entries (
     id BIGINT PRIMARY KEY AUTO_INCREMENT,
     item_name VARCHAR(200) NOT NULL,
@@ -590,24 +549,20 @@ CREATE TABLE grv_entries (
     FOREIGN KEY (storekeeper_id) REFERENCES users(id)
 );
 
--- GRV Items table
 CREATE TABLE grv_items (
     id BIGINT PRIMARY KEY AUTO_INCREMENT,
     grv_entry_id BIGINT NOT NULL,
     asset_type_id BIGINT,
-    model_id BIGINT,
+    brand VARCHAR(50),
     serial_number VARCHAR(100),
-    status_id BIGINT,
     notes TEXT,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (grv_entry_id) REFERENCES grv_entries(id) ON DELETE CASCADE,
-    FOREIGN KEY (asset_type_id) REFERENCES asset_types(id),
-    FOREIGN KEY (model_id) REFERENCES models(id),
-    FOREIGN KEY (status_id) REFERENCES statuses(id)
+    FOREIGN KEY (asset_type_id) REFERENCES asset_types(id)
 );
 
 -- =============================================
--- 6. ASSETS TABLE (Individual Tracked Assets)
+-- 5. ASSETS TABLE (Individual Tracked Assets)
 -- =============================================
 
 CREATE TABLE assets (
@@ -615,21 +570,21 @@ CREATE TABLE assets (
     asset_code VARCHAR(50) UNIQUE NOT NULL,
     grv_item_id BIGINT,
     asset_type_id BIGINT NOT NULL,
-    model_id BIGINT,
+    brand VARCHAR(50),
     serial_number VARCHAR(100) UNIQUE,
-    status_id BIGINT NOT NULL,
+    status VARCHAR(30) NOT NULL DEFAULT 'AVAILABLE',
     purchase_date DATE,
+    purchase_cost DECIMAL(10, 2),
+    replacement_threshold DECIMAL(10, 2),
+    total_consumable_cost DECIMAL(10, 2) DEFAULT 0.00,
     specs JSON,
     notes TEXT,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     FOREIGN KEY (grv_item_id) REFERENCES grv_items(id),
-    FOREIGN KEY (asset_type_id) REFERENCES asset_types(id),
-    FOREIGN KEY (model_id) REFERENCES models(id),
-    FOREIGN KEY (status_id) REFERENCES statuses(id)
+    FOREIGN KEY (asset_type_id) REFERENCES asset_types(id)
 );
 
--- Asset Locations (current and historical)
 CREATE TABLE asset_locations (
     id BIGINT PRIMARY KEY AUTO_INCREMENT,
     asset_id BIGINT NOT NULL,
@@ -643,7 +598,6 @@ CREATE TABLE asset_locations (
     FOREIGN KEY (office_id) REFERENCES offices(id)
 );
 
--- Asset Assignments (current and historical)
 CREATE TABLE asset_assignments (
     id BIGINT PRIMARY KEY AUTO_INCREMENT,
     asset_id BIGINT NOT NULL,
@@ -659,28 +613,27 @@ CREATE TABLE asset_assignments (
 );
 
 -- =============================================
--- 7. INVENTORY MODULE (Quantity-tracked items)
+-- 6. INVENTORY MODULE (Quantity-tracked items)
 -- =============================================
 
--- Inventory items (consumables like toners)
--- Each record represents a unique product at a specific location
 CREATE TABLE inventory_items (
     id BIGINT PRIMARY KEY AUTO_INCREMENT,
     asset_type_id BIGINT NOT NULL,
-    model_id BIGINT,
+    brand VARCHAR(50),
     name VARCHAR(200) NOT NULL,
     quantity INT NOT NULL DEFAULT 0,
-    current_location_id BIGINT,
+    location_id BIGINT,
+    linked_asset_id BIGINT
+    specs JSON,
     notes TEXT,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     FOREIGN KEY (asset_type_id) REFERENCES asset_types(id),
-    FOREIGN KEY (model_id) REFERENCES models(id),
-    FOREIGN KEY (current_location_id) REFERENCES offices(id),
-    UNIQUE KEY uk_product_location (asset_type_id, model_id, current_location_id)
+    FOREIGN KEY (location_id) REFERENCES offices(id),
+    FOREIGN KEY (linked_asset_id) REFERENCES assets(id),
+    UNIQUE KEY uk_product_location (asset_type_id, brand, location_id)
 );
 
--- Links inventory items back to GRV items for audit traceability
 CREATE TABLE inventory_grv_links (
     id BIGINT PRIMARY KEY AUTO_INCREMENT,
     inventory_item_id BIGINT NOT NULL,
@@ -691,7 +644,6 @@ CREATE TABLE inventory_grv_links (
     FOREIGN KEY (grv_item_id) REFERENCES grv_items(id) ON DELETE CASCADE
 );
 
--- Inventory transactions
 CREATE TABLE inventory_transactions (
     id BIGINT PRIMARY KEY AUTO_INCREMENT,
     inventory_item_id BIGINT NOT NULL,
@@ -712,7 +664,7 @@ CREATE TABLE inventory_transactions (
 );
 
 -- =============================================
--- 8. TEMPORARY LOANS MODULE (Projectors)
+-- 7. TEMPORARY LOANS MODULE
 -- =============================================
 
 CREATE TABLE temporary_loans (
@@ -735,7 +687,7 @@ CREATE TABLE temporary_loans (
 );
 
 -- =============================================
--- 9. SERVICES MODULE (Repairs & Maintenance)
+-- 8. SERVICES MODULE (Repairs & Maintenance)
 -- =============================================
 
 CREATE TABLE service_entries (
@@ -756,7 +708,7 @@ CREATE TABLE service_entries (
 );
 
 -- =============================================
--- 10. AUDIT TRAIL
+-- 9. AUDIT TRAIL
 -- =============================================
 
 CREATE TABLE audit_logs (
@@ -778,15 +730,18 @@ CREATE TABLE audit_logs (
 
 CREATE INDEX idx_assets_asset_code ON assets(asset_code);
 CREATE INDEX idx_assets_serial_number ON assets(serial_number);
-CREATE INDEX idx_assets_status ON assets(status_id);
+CREATE INDEX idx_assets_status ON assets(status);
+CREATE INDEX idx_assets_brand ON assets(brand);
 CREATE INDEX idx_asset_locations_current ON asset_locations(asset_id, is_current);
 CREATE INDEX idx_asset_assignments_current ON asset_assignments(asset_id, is_current);
 CREATE INDEX idx_inventory_items_quantity ON inventory_items(quantity);
+CREATE INDEX idx_inventory_items_brand ON inventory_items(brand);
 CREATE INDEX idx_temporary_loans_active ON temporary_loans(asset_id, actual_return_date);
 CREATE INDEX idx_service_entries_asset ON service_entries(asset_id);
 CREATE INDEX idx_audit_logs_entity ON audit_logs(entity_type, entity_id);
 CREATE INDEX idx_audit_logs_created ON audit_logs(created_at);
 ```
+
 ### 8.6 Entity Descriptions
 
 | Entity                    | Description                                              | Key Fields                                             | Tracks                                 |

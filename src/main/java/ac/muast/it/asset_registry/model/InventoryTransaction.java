@@ -28,8 +28,9 @@ public class InventoryTransaction {
     @Column(nullable = false)
     private Integer quantity;
 
+    @Enumerated(EnumType.STRING)
     @Column(name = "transaction_type", nullable = false, length = 20)
-    private String transactionType;   // "RECEIVED", "SENT", "ADJUSTED", "RETURNED"
+    private InventoryTransactionType transactionType;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "from_location_id")
