@@ -549,18 +549,6 @@ CREATE TABLE grv_entries (
     FOREIGN KEY (storekeeper_id) REFERENCES users(id)
 );
 
-CREATE TABLE grv_items (
-    id BIGINT PRIMARY KEY AUTO_INCREMENT,
-    grv_entry_id BIGINT NOT NULL,
-    asset_type_id BIGINT,
-    brand VARCHAR(50),
-    serial_number VARCHAR(100),
-    notes TEXT,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (grv_entry_id) REFERENCES grv_entries(id) ON DELETE CASCADE,
-    FOREIGN KEY (asset_type_id) REFERENCES asset_types(id)
-);
-
 -- =============================================
 -- 5. ASSETS TABLE (Individual Tracked Assets)
 -- =============================================
@@ -568,7 +556,7 @@ CREATE TABLE grv_items (
 CREATE TABLE assets (
     id BIGINT PRIMARY KEY AUTO_INCREMENT,
     asset_code VARCHAR(50) UNIQUE NOT NULL,
-    grv_item_id BIGINT,
+    grv_entry_id BIGINT,
     asset_type_id BIGINT NOT NULL,
     brand VARCHAR(50),
     serial_number VARCHAR(100) UNIQUE,
@@ -581,20 +569,18 @@ CREATE TABLE assets (
     notes TEXT,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    FOREIGN KEY (grv_item_id) REFERENCES grv_items(id),
+    FOREIGN KEY (grv_entry_id) REFERENCES grv_entries(id),
     FOREIGN KEY (asset_type_id) REFERENCES asset_types(id)
 );
 
 CREATE TABLE asset_locations (
     id BIGINT PRIMARY KEY AUTO_INCREMENT,
     asset_id BIGINT NOT NULL,
-    campus_id BIGINT NOT NULL,
     office_id BIGINT NOT NULL,
     is_current BOOLEAN DEFAULT TRUE,
     assigned_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     UNIQUE KEY uk_asset_current_location (asset_id, is_current),
     FOREIGN KEY (asset_id) REFERENCES assets(id) ON DELETE CASCADE,
-    FOREIGN KEY (campus_id) REFERENCES campuses(id),
     FOREIGN KEY (office_id) REFERENCES offices(id)
 );
 
@@ -637,11 +623,11 @@ CREATE TABLE inventory_items (
 CREATE TABLE inventory_grv_links (
     id BIGINT PRIMARY KEY AUTO_INCREMENT,
     inventory_item_id BIGINT NOT NULL,
-    grv_item_id BIGINT NOT NULL,
+    grv_entry_id BIGINT NOT NULL,
     quantity_contributed INT NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (inventory_item_id) REFERENCES inventory_items(id) ON DELETE CASCADE,
-    FOREIGN KEY (grv_item_id) REFERENCES grv_items(id) ON DELETE CASCADE
+    FOREIGN KEY (grv_entry_id) REFERENCES grv_entries(id) ON DELETE CASCADE
 );
 
 CREATE TABLE inventory_transactions (
@@ -692,7 +678,7 @@ CREATE TABLE temporary_loans (
 
 CREATE TABLE service_entries (
     id BIGINT PRIMARY KEY AUTO_INCREMENT,
-    grv_item_id BIGINT,
+    grv_entry_id BIGINT,
     asset_id BIGINT,
     service_type VARCHAR(50) NOT NULL,
     description TEXT NOT NULL,
@@ -702,7 +688,7 @@ CREATE TABLE service_entries (
     performed_by_id BIGINT,
     notes TEXT,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (grv_item_id) REFERENCES grv_items(id),
+    FOREIGN KEY (grv_entry_id) REFERENCES grv_entries(id),
     FOREIGN KEY (asset_id) REFERENCES assets(id),
     FOREIGN KEY (performed_by_id) REFERENCES users(id)
 );

@@ -7,8 +7,6 @@ import lombok.*;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
 
 @Entity
 @Table(name = "grv_entries")
@@ -35,7 +33,7 @@ public class GrvEntry {
     private BigDecimal unitPrice;
 
     @Column(name = "total_price", precision = 10, scale = 2, insertable = false, updatable = false)
-    private BigDecimal totalPrice;  // Generated column — read-only
+    private BigDecimal totalPrice;
 
     @Column(name = "storekeeper_remarks", columnDefinition = "TEXT")
     private String storekeeperRemarks;
@@ -54,12 +52,6 @@ public class GrvEntry {
 
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
-
-    @OneToMany(mappedBy = "grvEntry", cascade = CascadeType.ALL, orphanRemoval = true)
-    @Builder.Default
-    @ToString.Exclude
-    @EqualsAndHashCode.Exclude
-    private List<GrvItem> items = new ArrayList<>();
 
     @PrePersist
     protected void onCreate() {

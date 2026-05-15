@@ -25,10 +25,10 @@ public class InventoryGrvLink {
     private InventoryItem inventoryItem;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "grv_item_id", nullable = false)
+    @JoinColumn(name = "grv_entry_id", nullable = false)
     @ToString.Exclude
     @EqualsAndHashCode.Exclude
-    private GrvItem grvItem;
+    private GrvEntry grvEntry;
 
     @Column(name = "quantity_contributed", nullable = false)
     private Integer quantityContributed;

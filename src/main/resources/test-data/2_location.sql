@@ -8,169 +8,70 @@
 -- =============================================
 
 -- =============================================
--- 1. CAMPUSES (3 campuses as specified)
+-- 1. CAMPUSES (3 campuses)
 -- =============================================
 
-INSERT INTO campuses (name, display_name, address) VALUES
-('CSC', 'Cold Storage Commission', '123 Technology Drive, Harare, Zimbabwe'),
-('AIP', 'Agro Industrial Park', '45 Innovation Hub, Harare, Zimbabwe'),
-('MAR', 'Marondera Campus', '78 Agriculture Road, Marondera, Zimbabwe');
+INSERT INTO campuses (id, name, display_name, address) VALUES
+(1, 'CSC', 'Main Campus', '123 Technology Drive, Harare, Zimbabwe'),
+(2, 'MAR', 'Marondera Campus', '78 Agriculture Road, Marondera, Zimbabwe'),
+(3, 'AIP', 'AIP Campus', '45 Innovation Hub, Harare, Zimbabwe');
+
+ALTER TABLE campuses AUTO_INCREMENT = 4;
 
 -- =============================================
--- 2. OFFICES FOR CSC CAMPUS
+-- 2. OFFICES FOR CSC CAMPUS (Campus ID 1)
 -- =============================================
 
--- CSC Campus Offices (Campus name: 'CSC')
-INSERT INTO offices (campus_id, name, display_name, description, is_active) 
-SELECT c.id, 'IT_DEPT', 'IT Department', 'Main IT department office for technical staff', TRUE
-FROM campuses c WHERE c.name = 'CSC';
-
-INSERT INTO offices (campus_id, name, display_name, description, is_active) 
-SELECT c.id, 'REGISTRAR', 'Registrar Office', 'Office of the Registrar for student records', TRUE
-FROM campuses c WHERE c.name = 'CSC';
-
-INSERT INTO offices (campus_id, name, display_name, description, is_active) 
-SELECT c.id, 'FINANCE', 'Finance Office', 'Finance department for payments and budgeting', TRUE
-FROM campuses c WHERE c.name = 'CSC';
-
-INSERT INTO offices (campus_id, name, display_name, description, is_active) 
-SELECT c.id, 'HOD_CS', 'Head of Computer Science', 'Computer Science Department head office', TRUE
-FROM campuses c WHERE c.name = 'CSC';
-
-INSERT INTO offices (campus_id, name, display_name, description, is_active) 
-SELECT c.id, 'HOD_IT', 'Head of Information Technology', 'IT Department head office', TRUE
-FROM campuses c WHERE c.name = 'CSC';
-
-INSERT INTO offices (campus_id, name, display_name, description, is_active) 
-SELECT c.id, 'LIBRARY', 'Main Library', 'University main library and resource center', TRUE
-FROM campuses c WHERE c.name = 'CSC';
-
-INSERT INTO offices (campus_id, name, display_name, description, is_active) 
-SELECT c.id, 'LAB_MAIN', 'Main Computer Lab', 'Primary computer laboratory with 100 workstations', TRUE
-FROM campuses c WHERE c.name = 'CSC';
-
-INSERT INTO offices (campus_id, name, display_name, description, is_active) 
-SELECT c.id, 'LAB_RESEARCH', 'Research Lab', 'Specialized research computer laboratory', TRUE
-FROM campuses c WHERE c.name = 'CSC';
-
-INSERT INTO offices (campus_id, name, display_name, description, is_active) 
-SELECT c.id, 'SERVER_ROOM', 'Main Server Room', 'Primary data center and server room', TRUE
-FROM campuses c WHERE c.name = 'CSC';
-
-INSERT INTO offices (campus_id, name, display_name, description, is_active) 
-SELECT c.id, 'NETWORK_OPS', 'Network Operations Center', 'Network monitoring and operations center', TRUE
-FROM campuses c WHERE c.name = 'CSC';
-
-INSERT INTO offices (campus_id, name, display_name, description, is_active) 
-SELECT c.id, 'HR_DEPT', 'Human Resources', 'Human Resources department office', TRUE
-FROM campuses c WHERE c.name = 'CSC';
-
-INSERT INTO offices (campus_id, name, display_name, description, is_active) 
-SELECT c.id, 'PROCUREMENT', 'Procurement Office', 'Procurement and supplies department', TRUE
-FROM campuses c WHERE c.name = 'CSC';
-
-INSERT INTO offices (campus_id, name, display_name, description, is_active) 
-SELECT c.id, 'ESTATES', 'Estates Office', 'University estates and facilities management', TRUE
-FROM campuses c WHERE c.name = 'CSC';
-
-INSERT INTO offices (campus_id, name, display_name, description, is_active) 
-SELECT c.id, 'SECURITY', 'Security Office', 'Campus security and access control', TRUE
-FROM campuses c WHERE c.name = 'CSC';
+INSERT INTO offices (campus_id, name, display_name, description, is_active) VALUES
+(1, 'IT_OFFICE', 'IT Office', 'Main IT department office', TRUE),
+(1, 'ADMIN_OFFICE', 'Admin Office', 'Administration and management office', TRUE),
+(1, 'FINANCE_DEPT', 'Finance Department', 'Finance and accounting department', TRUE),
+(1, 'COMP_LAB_1', 'Computer Lab 1', 'Primary computer laboratory', TRUE),
+(1, 'COMP_LAB_2', 'Computer Lab 2', 'Secondary computer laboratory', TRUE),
+(1, 'LIBRARY', 'Library', 'Main university library', TRUE),
+(1, 'LECTURE_HALL_A', 'Lecture Hall A', 'Main lecture hall with projector', TRUE),
+(1, 'STORES', 'Stores/Storage Room', 'IT equipment and supplies storage', TRUE);
 
 -- =============================================
--- 3. OFFICES FOR AIP CAMPUS
+-- 3. OFFICES FOR MAR CAMPUS (Campus ID 2)
 -- =============================================
 
--- AIP Campus Offices (Campus name: 'AIP')
-INSERT INTO offices (campus_id, name, display_name, description, is_active) 
-SELECT c.id, 'IT_DEPT', 'IT Department', 'AIP campus IT support office', TRUE
-FROM campuses c WHERE c.name = 'AIP';
-
-INSERT INTO offices (campus_id, name, display_name, description, is_active) 
-SELECT c.id, 'INNOVATION_HUB', 'Innovation Hub', 'Startup incubation and innovation center', TRUE
-FROM campuses c WHERE c.name = 'AIP';
-
-INSERT INTO offices (campus_id, name, display_name, description, is_active) 
-SELECT c.id, 'BUSINESS_DEV', 'Business Development', 'Partnerships and business development office', TRUE
-FROM campuses c WHERE c.name = 'AIP';
-
-INSERT INTO offices (campus_id, name, display_name, description, is_active) 
-SELECT c.id, 'HOD_ENTRE', 'Head of Entrepreneurship', 'Entrepreneurship Department office', TRUE
-FROM campuses c WHERE c.name = 'AIP';
-
-INSERT INTO offices (campus_id, name, display_name, description, is_active) 
-SELECT c.id, 'HOD_INNOVATION', 'Head of Innovation', 'Innovation Department office', TRUE
-FROM campuses c WHERE c.name = 'AIP';
-
-INSERT INTO offices (campus_id, name, display_name, description, is_active) 
-SELECT c.id, 'LIBRARY', 'AIP Library', 'Innovation and business library', TRUE
-FROM campuses c WHERE c.name = 'AIP';
-
-INSERT INTO offices (campus_id, name, display_name, description, is_active) 
-SELECT c.id, 'LAB_STARTUP', 'Startup Lab', 'Computer lab for startup incubation', TRUE
-FROM campuses c WHERE c.name = 'AIP';
-
-INSERT INTO offices (campus_id, name, display_name, description, is_active) 
-SELECT c.id, 'COWORKING', 'Co-working Space', 'Shared workspace for innovators', TRUE
-FROM campuses c WHERE c.name = 'AIP';
-
-INSERT INTO offices (campus_id, name, display_name, description, is_active) 
-SELECT c.id, 'ADMIN', 'Administration Office', 'AIP campus administration', TRUE
-FROM campuses c WHERE c.name = 'AIP';
-
-INSERT INTO offices (campus_id, name, display_name, description, is_active) 
-SELECT c.id, 'HR_DEPT', 'Human Resources', 'Human Resources department', TRUE
-FROM campuses c WHERE c.name = 'AIP';
+INSERT INTO offices (campus_id, name, display_name, description, is_active) VALUES
+(2, 'IT_OFFICE', 'IT Office', 'Marondera campus IT support office', TRUE),
+(2, 'ADMIN_OFFICE', 'Admin Office', 'Marondera campus administration', TRUE),
+(2, 'LIBRARY', 'Library', 'Marondera campus library', TRUE);
 
 -- =============================================
--- 4. OFFICES FOR MAR CAMPUS (Marondera)
+-- 4. OFFICES FOR AIP CAMPUS (Campus ID 3)
 -- =============================================
 
--- MAR Campus Offices (Campus name: 'MAR')
-INSERT INTO offices (campus_id, name, display_name, description, is_active) 
-SELECT c.id, 'IT_DEPT', 'IT Department', 'Marondera campus IT support office', TRUE
-FROM campuses c WHERE c.name = 'MAR';
+INSERT INTO offices (campus_id, name, display_name, description, is_active) VALUES
+(3, 'IT_OFFICE', 'IT Office', 'AIP campus IT support office', TRUE),
+(3, 'ADMIN_OFFICE', 'Admin Office', 'AIP campus administration', TRUE);
 
-INSERT INTO offices (campus_id, name, display_name, description, is_active) 
-SELECT c.id, 'AGRIC_DEPT', 'Agriculture Department', 'Main agriculture department office', TRUE
-FROM campuses c WHERE c.name = 'MAR';
+-- =============================================
+-- SUMMARY
+-- =============================================
 
-INSERT INTO offices (campus_id, name, display_name, description, is_active) 
-SELECT c.id, 'HOD_AGRIC', 'Head of Agriculture', 'Agriculture Department head office', TRUE
-FROM campuses c WHERE c.name = 'MAR';
-
-INSERT INTO offices (campus_id, name, display_name, description, is_active) 
-SELECT c.id, 'HOD_VET', 'Head of Veterinary', 'Veterinary Sciences head office', TRUE
-FROM campuses c WHERE c.name = 'MAR';
-
-INSERT INTO offices (campus_id, name, display_name, description, is_active) 
-SELECT c.id, 'FARM_MANAGER', 'Farm Manager Office', 'University farm management office', TRUE
-FROM campuses c WHERE c.name = 'MAR';
-
-INSERT INTO offices (campus_id, name, display_name, description, is_active) 
-SELECT c.id, 'LIBRARY', 'Marondera Library', 'Agriculture and science library', TRUE
-FROM campuses c WHERE c.name = 'MAR';
-
-INSERT INTO offices (campus_id, name, display_name, description, is_active) 
-SELECT c.id, 'LAB_AGRIC', 'Agriculture Lab', 'Agricultural science laboratory', TRUE
-FROM campuses c WHERE c.name = 'MAR';
-
-INSERT INTO offices (campus_id, name, display_name, description, is_active) 
-SELECT c.id, 'LAB_COMPUTER', 'Computer Lab', 'General purpose computer laboratory', TRUE
-FROM campuses c WHERE c.name = 'MAR';
-
-INSERT INTO offices (campus_id, name, display_name, description, is_active) 
-SELECT c.id, 'ADMIN', 'Administration Office', 'Marondera campus administration', TRUE
-FROM campuses c WHERE c.name = 'MAR';
-
-INSERT INTO offices (campus_id, name, display_name, description, is_active) 
-SELECT c.id, 'STUDENT_AFFAIRS', 'Student Affairs', 'Student services and affairs office', TRUE
-FROM campuses c WHERE c.name = 'MAR';
-
-INSERT INTO offices (campus_id, name, display_name, description, is_active) 
-SELECT c.id, 'ACCOMMODATION', 'Accommodation Office', 'Student housing and accommodation', TRUE
-FROM campuses c WHERE c.name = 'MAR';
-
-INSERT INTO offices (campus_id, name, display_name, description, is_active) 
-SELECT c.id, 'SPORTS', 'Sports Office', 'Sports department and recreation', TRUE
-FROM campuses c WHERE c.name = 'MAR';
+/*
+┌─────────┬────────────────────┬──────────────────────┐
+│ Campus  │ Offices            │ Count                │
+├─────────┼────────────────────┼──────────────────────┤
+│ CSC     │ IT Office          │ 8 offices            │
+│         │ Admin Office       │                      │
+│         │ Finance Department │                      │
+│         │ Computer Lab 1     │                      │
+│         │ Computer Lab 2     │                      │
+│         │ Library            │                      │
+│         │ Lecture Hall A     │                      │
+│         │ Stores/Storage     │                      │
+├─────────┼────────────────────┼──────────────────────┤
+│ MAR     │ IT Office          │ 3 offices            │
+│         │ Admin Office       │                      │
+│         │ Library            │                      │
+├─────────┼────────────────────┼──────────────────────┤
+│ AIP     │ IT Office          │ 2 offices            │
+│         │ Admin Office       │                      │
+└─────────┴────────────────────┴──────────────────────┘
+Total: 3 campuses, 13 offices
+*/

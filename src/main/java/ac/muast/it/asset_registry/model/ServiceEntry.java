@@ -21,19 +21,19 @@ public class ServiceEntry {
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "grv_item_id")
+    @JoinColumn(name = "grv_entry_id")
     @ToString.Exclude
     @EqualsAndHashCode.Exclude
-    private GrvItem grvItem;          // Nullable — service for a GRV item
+    private GrvEntry grvEntry;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "asset_id")
     @ToString.Exclude
     @EqualsAndHashCode.Exclude
-    private Asset asset;              // Nullable — service for an existing asset
+    private Asset asset;
 
     @Column(name = "service_type", nullable = false, length = 50)
-    private String serviceType;       // e.g., "REPAIR", "MAINTENANCE", "WARRANTY"
+    private String serviceType;
 
     @Column(nullable = false, columnDefinition = "TEXT")
     private String description;

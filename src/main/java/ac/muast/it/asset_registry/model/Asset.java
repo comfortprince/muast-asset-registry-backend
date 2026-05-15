@@ -1,3 +1,4 @@
+// model/Asset.java
 package ac.muast.it.asset_registry.model;
 
 import jakarta.persistence.*;
@@ -25,10 +26,10 @@ public class Asset {
     private String assetCode;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "grv_item_id")
+    @JoinColumn(name = "grv_entry_id")
     @ToString.Exclude
     @EqualsAndHashCode.Exclude
-    private GrvItem grvItem;
+    private GrvEntry grvEntry;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "asset_type_id", nullable = false)

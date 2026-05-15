@@ -27,12 +27,6 @@ public class AssetLocation {
     private Asset asset;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "campus_id", nullable = false)
-    @ToString.Exclude
-    @EqualsAndHashCode.Exclude
-    private Campus campus;
-
-    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "office_id", nullable = false)
     @ToString.Exclude
     @EqualsAndHashCode.Exclude
@@ -45,4 +39,9 @@ public class AssetLocation {
     @Column(name = "assigned_at")
     @Builder.Default
     private LocalDateTime assignedAt = LocalDateTime.now();
+
+    // Helper — get campus via office
+    public Campus getCampus() {
+        return office != null ? office.getCampus() : null;
+    }
 }
