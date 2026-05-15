@@ -19,7 +19,6 @@ INSERT INTO roles (id, name, description) VALUES
 (3, 'VIEWER', 'View only access'),
 (4, 'ADMIN', 'Full system access');
 
--- Reset auto-increment to start after our inserted IDs
 ALTER TABLE roles AUTO_INCREMENT = 5;
 
 -- =============================================
@@ -27,57 +26,32 @@ ALTER TABLE roles AUTO_INCREMENT = 5;
 -- =============================================
 
 INSERT INTO permissions (name, display_name, description, module) VALUES
--- User Management (USER_*)
-('USER_CREATE', 'Create Users', 'Ability to create new users', 'USER_MANAGEMENT'),
-('USER_READ', 'Read Users', 'Ability to view user information', 'USER_MANAGEMENT'),
-('USER_UPDATE', 'Update Users', 'Ability to update user information', 'USER_MANAGEMENT'),
-('USER_DELETE', 'Delete Users', 'Ability to delete users', 'USER_MANAGEMENT'),
-('USER_ASSIGN_ROLES', 'Assign Roles', 'Ability to assign roles to users', 'USER_MANAGEMENT'),
+-- User Management
+('MANAGE_USERS', 'Manage Users', 'Ability to create, update, disable, and assign roles to users', 'USER_MANAGEMENT'),
+('READ_USERS', 'Read Users', 'Ability to view user information', 'USER_MANAGEMENT'),
 
--- Role Management (*_ROLE)
-('CREATE_ROLE', 'Create Roles', 'Ability to create new roles', 'ROLE_MANAGEMENT'),
-('READ_ROLE', 'Read Roles', 'Ability to view roles', 'ROLE_MANAGEMENT'),
-('UPDATE_ROLE', 'Update Roles', 'Ability to update roles', 'ROLE_MANAGEMENT'),
-('DELETE_ROLE', 'Delete Roles', 'Ability to delete roles', 'ROLE_MANAGEMENT'),
-('ASSIGN_ROLE_PERMISSION', 'Assign Permissions', 'Ability to assign permissions to roles', 'ROLE_MANAGEMENT'),
+-- Role Management
+('MANAGE_ROLES', 'Manage Roles', 'Ability to create, update, delete roles and assign permissions', 'ROLE_MANAGEMENT'),
+('READ_ROLES', 'Read Roles', 'Ability to view roles and their permissions', 'ROLE_MANAGEMENT'),
 
--- Asset Management (ASSET_*)
-('ASSET_CREATE', 'Create Assets', 'Ability to create new assets', 'ASSET_MANAGEMENT'),
-('ASSET_READ', 'Read Assets', 'Ability to view assets', 'ASSET_MANAGEMENT'),
-('ASSET_UPDATE', 'Update Assets', 'Ability to update asset information', 'ASSET_MANAGEMENT'),
-('ASSET_DELETE', 'Delete Assets', 'Ability to delete assets', 'ASSET_MANAGEMENT'),
-('ASSET_ASSIGN', 'Assign Assets', 'Ability to assign assets to users', 'ASSET_MANAGEMENT'),
-('ASSET_CHECKIN', 'Check-in Assets', 'Ability to check-in returned assets', 'ASSET_MANAGEMENT'),
-('ASSET_TRANSFER', 'Transfer Assets', 'Ability to transfer assets between locations', 'ASSET_MANAGEMENT'),
+-- Asset Management
+('MANAGE_ASSETS', 'Manage Assets', 'Ability to create, update, dispose, assign, check-in, and transfer assets', 'ASSET_MANAGEMENT'),
+('READ_ASSETS', 'Read Assets', 'Ability to view assets', 'ASSET_MANAGEMENT'),
 
--- GRV Management (GRV_*)
-('GRV_CREATE', 'Create GRV', 'Ability to create Goods Received Vouchers', 'GRV_MANAGEMENT'),
-('GRV_READ', 'Read GRV', 'Ability to view GRV entries', 'GRV_MANAGEMENT'),
-('GRV_UPDATE', 'Update GRV', 'Ability to update GRV entries', 'GRV_MANAGEMENT'),
-('GRV_DELETE', 'Delete GRV', 'Ability to delete GRV entries', 'GRV_MANAGEMENT'),
-('GRV_APPROVE', 'Approve GRV', 'Ability to approve GRV entries', 'GRV_MANAGEMENT'),
+-- Location Management
+('MANAGE_LOCATIONS', 'Manage Locations', 'Ability to create, update, and delete campuses and offices', 'LOCATION_MANAGEMENT'),
+('READ_LOCATIONS', 'Read Locations', 'Ability to view campuses and offices', 'LOCATION_MANAGEMENT'),
 
--- Location Management (LOCATION_*)
-('LOCATION_CREATE', 'Create Locations', 'Ability to create campuses/offices', 'LOCATION_MANAGEMENT'),
-('LOCATION_READ', 'Read Locations', 'Ability to view locations', 'LOCATION_MANAGEMENT'),
-('LOCATION_UPDATE', 'Update Locations', 'Ability to update location information', 'LOCATION_MANAGEMENT'),
-('LOCATION_DELETE', 'Delete Locations', 'Ability to delete locations', 'LOCATION_MANAGEMENT'),
-
--- Category Management (CATEGORY_*)
-('CATEGORY_CREATE', 'Create Categories', 'Ability to create asset categories', 'CATALOG_MANAGEMENT'),
-('CATEGORY_READ', 'Read Categories', 'Ability to view categories', 'CATALOG_MANAGEMENT'),
-('CATEGORY_UPDATE', 'Update Categories', 'Ability to update categories', 'CATALOG_MANAGEMENT'),
-('CATEGORY_DELETE', 'Delete Categories', 'Ability to delete categories', 'CATALOG_MANAGEMENT'),
+-- Catalog Management
+('MANAGE_ASSET_CATALOG', 'Manage Asset Catalog', 'Ability to create, update, and delete categories and asset types', 'CATALOG_MANAGEMENT'),
+('READ_ASSET_CATALOG', 'Read Asset Catalog', 'Ability to view categories and asset types', 'CATALOG_MANAGEMENT'),
 
 -- Reports
-('REPORT_VIEW', 'View Reports', 'Ability to view system reports', 'REPORTS'),
-('REPORT_EXPORT', 'Export Reports', 'Ability to export reports', 'REPORTS'),
-('REPORT_SCHEDULE', 'Schedule Reports', 'Ability to schedule automated reports', 'REPORTS'),
+('VIEW_REPORTS', 'View Reports', 'Ability to view system reports', 'REPORTS'),
+('EXPORT_REPORTS', 'Export Reports', 'Ability to export reports', 'REPORTS'),
 
--- System Configuration
-('SYSTEM_CONFIG', 'Configure System', 'Ability to modify system configuration', 'SYSTEM'),
-('AUDIT_LOG_VIEW', 'View Audit Logs', 'Ability to view audit logs', 'SYSTEM'),
-('BACKUP_RESTORE', 'Backup & Restore', 'Ability to backup and restore data', 'SYSTEM');
+-- System
+('VIEW_AUDIT_LOGS', 'View Audit Logs', 'Ability to view audit logs', 'SYSTEM');
 
 -- =============================================
 -- 3. ROLE-PERMISSION ASSIGNMENTS
@@ -93,13 +67,11 @@ INSERT INTO role_permissions (role_id, permission_id)
 SELECT 2, p.id 
 FROM permissions p 
 WHERE p.name IN (
-    'USER_READ', 
-    'ASSET_CREATE', 'ASSET_READ', 'ASSET_UPDATE', 'ASSET_DELETE', 
-    'ASSET_ASSIGN', 'ASSET_CHECKIN', 'ASSET_TRANSFER',
-    'LOCATION_READ', 
-    'CATEGORY_READ',
-    'GRV_READ', 'GRV_CREATE', 'GRV_UPDATE',
-    'REPORT_VIEW', 'REPORT_EXPORT'
+    'READ_USERS',
+    'MANAGE_ASSETS', 'READ_ASSETS',
+    'READ_LOCATIONS',
+    'READ_ASSET_CATALOG',
+    'VIEW_REPORTS', 'EXPORT_REPORTS'
 );
 
 -- 3.3 VIEWER (Role ID 3) - Read-only access
@@ -107,21 +79,18 @@ INSERT INTO role_permissions (role_id, permission_id)
 SELECT 3, p.id 
 FROM permissions p 
 WHERE p.name IN (
-    'ASSET_READ',
-    'LOCATION_READ',
-    'CATEGORY_READ',
-    'REPORT_VIEW'
+    'READ_USERS',
+    'READ_ASSETS',
+    'READ_LOCATIONS',
+    'READ_ASSET_CATALOG',
+    'VIEW_REPORTS'
 );
 
 -- 3.4 USER (Role ID 1) - Basic user with no access (NO permissions)
--- No permissions inserted for USER role
 
 -- =============================================
 -- 4. USERS
 -- =============================================
--- Note: Using password field (not password_hash) as per User model
--- Fields match User.java: username, email, password, firstName, lastName, 
--- mustChangePassword, enabled, accountNonLocked, createdAt, lastLogin
 
 INSERT INTO users (
     username, 
@@ -312,3 +281,45 @@ INSERT INTO user_roles (user_id, role_id)
 SELECT u.id, 1
 FROM users u 
 WHERE u.username IN ('user.tendai', 'user.chipo', 'user.tawanda');
+
+-- =============================================
+-- SUMMARY: USER-ROLE-PERMISSION MATRIX
+-- =============================================
+
+/*
+┌─────────────────┬───────────┬──────────────────────────────────────────────────────────┐
+│ User            │ Role      │ Permissions                                              │
+├─────────────────┼───────────┼──────────────────────────────────────────────────────────┤
+│ admin.john      │ ADMIN     │ ALL permissions                                          │
+│ admin.jane      │ ADMIN     │ ALL permissions                                          │
+├─────────────────┼───────────┼──────────────────────────────────────────────────────────┤
+│ it.mary         │ IT_STAFF  │ READ_USERS, MANAGE_ASSETS, READ_ASSETS,                  │
+│ it.peter        │ IT_STAFF  │ READ_LOCATIONS, READ_ASSET_CATALOG,                      │
+│ it.sarah        │ IT_STAFF  │ VIEW_REPORTS, EXPORT_REPORTS                             │
+├─────────────────┼───────────┼──────────────────────────────────────────────────────────┤
+│ viewer.david    │ VIEWER    │ READ_USERS, READ_ASSETS, READ_LOCATIONS,                 │
+│ viewer.linda    │ VIEWER    │ READ_ASSET_CATALOG, VIEW_REPORTS                         │
+├─────────────────┼───────────┼──────────────────────────────────────────────────────────┤
+│ user.tendai     │ USER      │ None                                                     │
+│ user.chipo      │ USER      │ None                                                     │
+│ user.tawanda    │ USER      │ None                                                     │
+└─────────────────┴───────────┴──────────────────────────────────────────────────────────┘
+
+Credentials:
+  All users: secret123
+
+Permissions List:
+  ADMIN    (13): MANAGE_USERS, READ_USERS, MANAGE_ROLES, READ_ROLES,
+                  MANAGE_ASSETS, READ_ASSETS, MANAGE_LOCATIONS, READ_LOCATIONS,
+                  MANAGE_ASSET_CATALOG, READ_ASSET_CATALOG,
+                  VIEW_REPORTS, EXPORT_REPORTS, VIEW_AUDIT_LOGS
+
+  IT_STAFF  (7): READ_USERS, MANAGE_ASSETS, READ_ASSETS,
+                  READ_LOCATIONS, READ_ASSET_CATALOG,
+                  VIEW_REPORTS, EXPORT_REPORTS
+
+  VIEWER    (5): READ_USERS, READ_ASSETS, READ_LOCATIONS,
+                  READ_ASSET_CATALOG, VIEW_REPORTS
+
+  USER      (0): None
+*/

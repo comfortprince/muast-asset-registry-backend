@@ -115,14 +115,6 @@ public class User implements UserDetails {
             .map(permission -> new SimpleGrantedAuthority(permission.getName()))
             .collect(Collectors.toSet());
     }
-
-    public Set<String> getPermissionNames() {
-        if (roles == null) return Set.of();
-        return roles.stream()
-            .flatMap(role -> role.getPermissions().stream())
-            .map(Permission::getName)
-            .collect(Collectors.toSet());
-    }
     
     @Override
     public boolean isAccountNonExpired() {

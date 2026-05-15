@@ -12,17 +12,16 @@ import org.springframework.stereotype.Service;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import ac.muast.it.asset_registry.model.User;
-import ac.muast.it.asset_registry.repository.UserRepository;
 
 @Service
 @RequiredArgsConstructor
 @Slf4j
 public class CustomUserDetailsService implements UserDetailsService {
-	private final UserRepository userRespository;
+	private final UserAuthRepository userAuthRespository;
 
 	// @Override
 	public UserDetails loadUserByUsername(String username){
-		User user = userRespository.findByUsername(username)
+		User user = userAuthRespository.findByUsername(username)
 			.orElseThrow(() -> {
 				log.error("User not found with username: {}", username);
 				return new UsernameNotFoundException("User with username:" + username + " not found");

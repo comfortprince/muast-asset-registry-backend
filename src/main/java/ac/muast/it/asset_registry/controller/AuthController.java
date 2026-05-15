@@ -12,8 +12,8 @@ import org.springframework.web.bind.annotation.RestController;
 import ac.muast.it.asset_registry.annotation.LoginOperation;
 import ac.muast.it.asset_registry.dto.response.AuthResponse;
 import ac.muast.it.asset_registry.model.User;
+import ac.muast.it.asset_registry.security.UserAuthRepository;
 import ac.muast.it.asset_registry.service.JwtService;
-import ac.muast.it.asset_registry.service.UserService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -24,20 +24,17 @@ import lombok.extern.slf4j.Slf4j;
 public class AuthController {
 
   private final JwtService jwtService;
-  private final UserService userService;
+  private final UserAuthRepository userAuthRepository;
 
   @LoginOperation
   @PostMapping("/login")
   public ResponseEntity<AuthResponse> login(Authentication authentication, Principal p) {
-    User user = userService.getUserByUsername(p.getName());
+    User user = userAuthRepository.findByUsername(p.getName()).orElseThrow();
     long expirationTime = 60; // minutes
     String jwt = jwtService.generateToken(authentication, expirationTime);
 
     user.setLastLogin(LocalDateTime.now());
-    user = userService.updateUser(
-      user.getId(),
-      user
-    );
+    user = userAuthRepository.save(user);
 
     AuthResponse.UserInfo userInfo = AuthResponse.UserInfo.builder()
       .id(user.getId())
