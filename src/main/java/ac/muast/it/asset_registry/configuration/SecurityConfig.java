@@ -33,7 +33,7 @@ import lombok.RequiredArgsConstructor;
 
 @Configuration
 @EnableWebSecurity
-@EnableMethodSecurity(securedEnabled = true, prePostEnabled = true)
+// @EnableMethodSecurity(securedEnabled = true, prePostEnabled = true)
 @RequiredArgsConstructor
 public class SecurityConfig {
   private final CustomUserDetailsService userDetailsService;
@@ -50,7 +50,7 @@ public class SecurityConfig {
               "/swagger-ui/**",
               "/swagger-ui.html"
           ).permitAll()
-          .anyRequest().authenticated()
+          .anyRequest().permitAll()
       )
       .oauth2ResourceServer(oauth2 -> oauth2
         .jwt(jwt -> jwt

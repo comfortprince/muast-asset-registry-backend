@@ -7,6 +7,8 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.springframework.data.rest.core.annotation.RestResource;
+
 @Entity
 @Table(name = "inventory_items", uniqueConstraints = {
     @UniqueConstraint(columnNames = {"asset_type_id", "brand", "location_id"})
@@ -21,6 +23,7 @@ public class InventoryItem {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @RestResource(exported = false)
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "asset_type_id", nullable = false)
     @ToString.Exclude
@@ -37,12 +40,14 @@ public class InventoryItem {
     @Builder.Default
     private Integer quantity = 0;
 
+    @RestResource(exported = false)
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "location_id")
     @ToString.Exclude
     @EqualsAndHashCode.Exclude
     private Office location;
 
+    @RestResource(exported = false)
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "linked_asset_id")
     @ToString.Exclude

@@ -7,5 +7,5 @@ import java.util.List;
 
 public interface InventoryGrvLinkRepository extends JpaRepository<InventoryGrvLink, Long> {
     List<InventoryGrvLink> findByInventoryItemId(Long inventoryItemId);
-    List<InventoryGrvLink> findByGrvItemId(Long grvItemId);
+    List<InventoryGrvLink> findByGrvEntryId(Long grvEntryId);
 }
