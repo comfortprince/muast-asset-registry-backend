@@ -1,28 +1,27 @@
-// model/InventoryGrvLink.java
+// model/ConsumableGrvLink.java
 package ac.muast.it.asset_registry.model;
 
 import jakarta.persistence.*;
 import lombok.*;
-
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "inventory_grv_links")
+@Table(name = "consumable_grv_links")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class InventoryGrvLink {
+public class ConsumableGrvLink {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "inventory_item_id", nullable = false)
+    @JoinColumn(name = "consumable_id", nullable = false)
     @ToString.Exclude
     @EqualsAndHashCode.Exclude
-    private InventoryItem inventoryItem;
+    private Consumable consumable;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "grv_entry_id", nullable = false)

@@ -1,8 +1,8 @@
+// model/Category.java
 package ac.muast.it.asset_registry.model;
 
 import jakarta.persistence.*;
 import lombok.*;
-
 import java.util.ArrayList;
 import java.util.List;
 
@@ -19,10 +19,10 @@ public class Category {
     private Long id;
 
     @Column(unique = true, nullable = false, length = 50)
-    private String name;              // e.g., "COMPUTER", "PRINTER"
+    private String code;              // e.g., "COMPUTER", "PRINTER"
 
-    @Column(name = "display_name", nullable = false, length = 50)
-    private String displayName;        // e.g., "Computers"
+    @Column(unique = true, nullable = false, length = 50)
+    private String name;              // e.g., "Computers & Laptops"
 
     @Column(columnDefinition = "TEXT")
     private String description;

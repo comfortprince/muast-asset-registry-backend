@@ -438,51 +438,63 @@ class AppRoutes {
 
 CREATE TABLE users (
     id BIGINT PRIMARY KEY AUTO_INCREMENT,
+
     username VARCHAR(50) UNIQUE NOT NULL,
     email VARCHAR(100) UNIQUE NOT NULL,
+
     first_name VARCHAR(50) NOT NULL,
     last_name VARCHAR(50) NOT NULL,
+
     password VARCHAR(255) NOT NULL,
+
     must_change_password BOOLEAN DEFAULT FALSE,
+
     enabled BOOLEAN DEFAULT TRUE,
     account_non_expired BOOLEAN DEFAULT TRUE,
     account_non_locked BOOLEAN DEFAULT TRUE,
     credentials_non_expired BOOLEAN DEFAULT TRUE,
+
     reset_token VARCHAR(255),
-    reset_token_expiry TIMESTAMP,
+    reset_token_expiry TIMESTAMP NULL,
+
+    last_login TIMESTAMP NULL,
+
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    last_login TIMESTAMP NULL
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        ON UPDATE CURRENT_TIMESTAMP
 );
 
 CREATE TABLE roles (
     id BIGINT PRIMARY KEY AUTO_INCREMENT,
+
     name VARCHAR(50) UNIQUE NOT NULL,
     description TEXT
-);
-
-CREATE TABLE permissions (
-    id BIGINT PRIMARY KEY AUTO_INCREMENT,
-    name VARCHAR(100) UNIQUE NOT NULL,
-    display_name VARCHAR(100) NOT NULL,
-    description TEXT,
-    module VARCHAR(50)
 );
 
 CREATE TABLE user_roles (
     user_id BIGINT NOT NULL,
     role_id BIGINT NOT NULL,
-    PRIMARY KEY (user_id, role_id),
-    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
-    FOREIGN KEY (role_id) REFERENCES roles(id) ON DELETE CASCADE
+
+    PRIMARY KEY(user_id, role_id),
+
+    FOREIGN KEY (user_id)
+        REFERENCES users(id)
+        ON DELETE CASCADE,
+
+    FOREIGN KEY (role_id)
+        REFERENCES roles(id)
+        ON DELETE CASCADE
 );
 
 CREATE TABLE role_permissions (
     role_id BIGINT NOT NULL,
-    permission_id BIGINT NOT NULL,
-    PRIMARY KEY (role_id, permission_id),
-    FOREIGN KEY (role_id) REFERENCES roles(id) ON DELETE CASCADE,
-    FOREIGN KEY (permission_id) REFERENCES permissions(id) ON DELETE CASCADE
+    permission_name VARCHAR(100) NOT NULL,
+
+    PRIMARY KEY(role_id, permission_name),
+
+    FOREIGN KEY (role_id)
+        REFERENCES roles(id)
+        ON DELETE CASCADE
 );
 
 -- =============================================
@@ -491,20 +503,21 @@ CREATE TABLE role_permissions (
 
 CREATE TABLE campuses (
     id BIGINT PRIMARY KEY AUTO_INCREMENT,
-    name VARCHAR(10) UNIQUE NOT NULL,
-    display_name VARCHAR(50) NOT NULL,
-    address TEXT
+    code VARCHAR(10) UNIQUE NOT NULL,
+    name VARCHAR(50) UNIQUE NOT NULL,
+    description TEXT,
+    address TEXT,
 );
 
 CREATE TABLE offices (
     id BIGINT PRIMARY KEY AUTO_INCREMENT,
     campus_id BIGINT NOT NULL,
-    name VARCHAR(50) NOT NULL,
-    display_name VARCHAR(50) NOT NULL,
+    code VARCHAR(50) UNIQUE NOT NULL,
+    name VARCHAR(50) UNIQUE NOT NULL,
     description TEXT,
     is_active BOOLEAN DEFAULT TRUE,
-    UNIQUE KEY uk_campus_office (campus_id, name),
-    FOREIGN KEY (campus_id) REFERENCES campuses(id) ON DELETE CASCADE
+    UNIQUE KEY uk_campus_office (campus_id, code),
+    FOREIGN KEY (campus_id) REFERENCES campuses(id) ON DELETE CASCADE,
 );
 
 -- =============================================
@@ -513,19 +526,20 @@ CREATE TABLE offices (
 
 CREATE TABLE categories (
     id BIGINT PRIMARY KEY AUTO_INCREMENT,
+    code VARCHAR(50) UNIQUE NOT NULL,
     name VARCHAR(50) UNIQUE NOT NULL,
-    display_name VARCHAR(50) NOT NULL,
-    description TEXT
+    description TEXT,
 );
 
 CREATE TABLE asset_types (
     id BIGINT PRIMARY KEY AUTO_INCREMENT,
     category_id BIGINT NOT NULL,
-    name VARCHAR(50) NOT NULL,
-    display_name VARCHAR(50) NOT NULL,
+    code VARCHAR(50) UNIQUE NOT NULL,
+    name VARCHAR(50) UNIQUE NOT NULL,
     description TEXT,
     track_individual BOOLEAN DEFAULT TRUE,
     track_quantity BOOLEAN DEFAULT FALSE,
+    track_consumable_replacement BOOLEAN DEFAULT FALSE;
     UNIQUE KEY uk_category_asset_type (category_id, name),
     FOREIGN KEY (category_id) REFERENCES categories(id) ON DELETE CASCADE
 );
@@ -536,17 +550,31 @@ CREATE TABLE asset_types (
 
 CREATE TABLE grv_entries (
     id BIGINT PRIMARY KEY AUTO_INCREMENT,
+
     item_name VARCHAR(200) NOT NULL,
+
     quantity_received INT NOT NULL,
+
     description TEXT,
-    unit_price DECIMAL(10, 2),
-    total_price DECIMAL(10, 2) GENERATED ALWAYS AS (quantity_received * unit_price) STORED,
+
+    unit_price DECIMAL(10,2),
+
+    total_price DECIMAL(10,2)
+        GENERATED ALWAYS AS
+        (quantity_received * unit_price) STORED,
+
     storekeeper_remarks TEXT,
+
     storekeeper_id BIGINT,
+
     received_date DATE NOT NULL,
+
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    FOREIGN KEY (storekeeper_id) REFERENCES users(id)
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        ON UPDATE CURRENT_TIMESTAMP,
+
+    FOREIGN KEY (storekeeper_id)
+        REFERENCES users(id)
 );
 
 -- =============================================
@@ -555,98 +583,203 @@ CREATE TABLE grv_entries (
 
 CREATE TABLE assets (
     id BIGINT PRIMARY KEY AUTO_INCREMENT,
-    asset_code VARCHAR(50) UNIQUE NOT NULL,
+
+    code VARCHAR(50) UNIQUE NOT NULL,
+
     grv_entry_id BIGINT,
+
     asset_type_id BIGINT NOT NULL,
+
+    current_status VARCHAR(30) NOT NULL,
+
     brand VARCHAR(50),
+
     serial_number VARCHAR(100) UNIQUE,
-    status VARCHAR(30) NOT NULL DEFAULT 'AVAILABLE',
+
     purchase_date DATE,
-    purchase_cost DECIMAL(10, 2),
-    replacement_threshold DECIMAL(10, 2),
-    total_consumable_cost DECIMAL(10, 2) DEFAULT 0.00,
+
+    purchase_cost DECIMAL(10,2),
+
     specs JSON,
+
     notes TEXT,
+
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    FOREIGN KEY (grv_entry_id) REFERENCES grv_entries(id),
-    FOREIGN KEY (asset_type_id) REFERENCES asset_types(id)
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        ON UPDATE CURRENT_TIMESTAMP,
+
+    FOREIGN KEY (grv_entry_id)
+        REFERENCES grv_entries(id),
+
+    FOREIGN KEY (asset_type_id)
+        REFERENCES asset_types(id)
 );
 
-CREATE TABLE asset_locations (
+CREATE TABLE asset_status_history (
     id BIGINT PRIMARY KEY AUTO_INCREMENT,
+
     asset_id BIGINT NOT NULL,
+
+    status VARCHAR(30) NOT NULL,
+    /* Possible vals => ENUM(AVAILABLE, ASSIGNED, ON_LOAN, IN_REPAIR, LOST, DECOMMISSIONED) */
+
+    reason TEXT,
+
+    valid_from TIMESTAMP NOT NULL,
+    valid_to TIMESTAMP NOT NULL,
+    /* 9000-01-01 00:00:00 For Null */
+
+    FOREIGN KEY (asset_id)
+        REFERENCES assets(id)
+        ON DELETE CASCADE
+);
+
+CREATE TABLE asset_location_history (
+    id BIGINT PRIMARY KEY AUTO_INCREMENT,
+
+    asset_id BIGINT NOT NULL,
+
     office_id BIGINT NOT NULL,
-    is_current BOOLEAN DEFAULT TRUE,
-    assigned_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    UNIQUE KEY uk_asset_current_location (asset_id, is_current),
-    FOREIGN KEY (asset_id) REFERENCES assets(id) ON DELETE CASCADE,
-    FOREIGN KEY (office_id) REFERENCES offices(id)
+
+    valid_from TIMESTAMP NOT NULL,
+    valid_to TIMESTAMP NOT NULL,
+    /* 9000-01-01 00:00:00 For Null */
+
+    /* SELECT *
+    FROM asset_location_history
+    WHERE asset_id = ?
+        AND valid_to = '9000-01-01 00:00:00'; */
+
+    FOREIGN KEY (asset_id)
+        REFERENCES assets(id)
+        ON DELETE CASCADE,
+
+    FOREIGN KEY (office_id)
+        REFERENCES offices(id)
 );
 
-CREATE TABLE asset_assignments (
+CREATE TABLE asset_assignment_history (
     id BIGINT PRIMARY KEY AUTO_INCREMENT,
+
     asset_id BIGINT NOT NULL,
-    user_id BIGINT,
+
+    user_id BIGINT NOT NULL,
+
     role_at_assignment VARCHAR(100),
-    is_current BOOLEAN DEFAULT TRUE,
-    assigned_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    returned_at TIMESTAMP NULL,
+
     notes TEXT,
-    UNIQUE KEY uk_asset_current_assignment (asset_id, is_current),
-    FOREIGN KEY (asset_id) REFERENCES assets(id) ON DELETE CASCADE,
-    FOREIGN KEY (user_id) REFERENCES users(id)
+
+    valid_from TIMESTAMP NOT NULL,
+    valid_to TIMESTAMP NOT NULL,
+    /* 9000-01-01 00:00:00 For Null */
+
+    FOREIGN KEY (asset_id)
+        REFERENCES assets(id)
+        ON DELETE CASCADE,
+
+    FOREIGN KEY (user_id)
+        REFERENCES users(id)
 );
 
 -- =============================================
 -- 6. INVENTORY MODULE (Quantity-tracked items)
 -- =============================================
 
-CREATE TABLE inventory_items (
+CREATE TABLE consumables (
     id BIGINT PRIMARY KEY AUTO_INCREMENT,
-    asset_type_id BIGINT NOT NULL,
+
+    asset_type_id BIGINT NOT NULL, 
+
     brand VARCHAR(50),
+
     name VARCHAR(200) NOT NULL,
-    quantity INT NOT NULL DEFAULT 0,
-    location_id BIGINT,
-    linked_asset_id BIGINT
+
     specs JSON,
+
     notes TEXT,
+
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    FOREIGN KEY (asset_type_id) REFERENCES asset_types(id),
-    FOREIGN KEY (location_id) REFERENCES offices(id),
-    FOREIGN KEY (linked_asset_id) REFERENCES assets(id),
-    UNIQUE KEY uk_product_location (asset_type_id, brand, location_id)
+
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        ON UPDATE CURRENT_TIMESTAMP,
+
+    FOREIGN KEY (asset_type_id)
+        REFERENCES asset_types(id),
+
+    UNIQUE(asset_type_id, brand)
 );
 
-CREATE TABLE inventory_grv_links (
+CREATE TABLE consumable_stock (
     id BIGINT PRIMARY KEY AUTO_INCREMENT,
-    inventory_item_id BIGINT NOT NULL,
+
+    consumable_id BIGINT NOT NULL,
+
+    office_id BIGINT NOT NULL,
+
+    quantity INT NOT NULL DEFAULT 0,
+
+    FOREIGN KEY (consumable_id)
+        REFERENCES consumables(id),
+
+    FOREIGN KEY (office_id)
+        REFERENCES offices(id),
+
+    UNIQUE(consumable_id, office_id)
+);
+
+CREATE TABLE consumable_grv_links (
+    id BIGINT PRIMARY KEY AUTO_INCREMENT,
+
+    consumable_id BIGINT NOT NULL,
+
     grv_entry_id BIGINT NOT NULL,
+
     quantity_contributed INT NOT NULL,
+
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (inventory_item_id) REFERENCES inventory_items(id) ON DELETE CASCADE,
-    FOREIGN KEY (grv_entry_id) REFERENCES grv_entries(id) ON DELETE CASCADE
+
+    FOREIGN KEY (consumable_id)
+        REFERENCES consumables(id)
+        ON DELETE CASCADE,
+
+    FOREIGN KEY (grv_entry_id)
+        REFERENCES grv_entries(id)
+        ON DELETE CASCADE
 );
 
-CREATE TABLE inventory_transactions (
+CREATE TABLE consumable_transactions (
     id BIGINT PRIMARY KEY AUTO_INCREMENT,
-    inventory_item_id BIGINT NOT NULL,
+
+    consumable_id BIGINT NOT NULL,
+
     quantity INT NOT NULL,
-    transaction_type VARCHAR(20) NOT NULL,
-    from_location_id BIGINT,
-    to_location_id BIGINT,
-    transaction_date DATE NOT NULL,
-    issued_by_id BIGINT,
-    received_by_id BIGINT,
+
+    unit_cost DECIMAL(10,2),
+
+    transaction_type VARCHAR(30) NOT NULL,
+    /* Possible vals => RECEIVED, TRANSFERRED, ADJUSTED, CONSUMED */
+
+    source_office_id BIGINT NULL,
+
+    destination_office_id BIGINT NULL,
+
+    asset_id BIGINT NULL,
+
+    transaction_date TIMESTAMP NOT NULL,
+
     notes TEXT,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (inventory_item_id) REFERENCES inventory_items(id) ON DELETE CASCADE,
-    FOREIGN KEY (from_location_id) REFERENCES offices(id),
-    FOREIGN KEY (to_location_id) REFERENCES offices(id),
-    FOREIGN KEY (issued_by_id) REFERENCES users(id),
-    FOREIGN KEY (received_by_id) REFERENCES users(id)
+
+    FOREIGN KEY (consumable_id)
+        REFERENCES consumables(id),
+
+    FOREIGN KEY (source_office_id)
+        REFERENCES offices(id),
+
+    FOREIGN KEY (destination_office_id)
+        REFERENCES offices(id),
+
+    FOREIGN KEY (asset_id)
+        REFERENCES assets(id)
 );
 
 -- =============================================
@@ -655,21 +788,36 @@ CREATE TABLE inventory_transactions (
 
 CREATE TABLE temporary_loans (
     id BIGINT PRIMARY KEY AUTO_INCREMENT,
+
     asset_id BIGINT NOT NULL,
+
     loaned_to_id BIGINT NOT NULL,
     loaned_by_id BIGINT NOT NULL,
+
     loan_date DATE NOT NULL,
+
     expected_return_date DATE,
     actual_return_date DATE,
+
     accessories TEXT,
+
     sign_out_signature TEXT,
     sign_in_signature TEXT,
+
     notes TEXT,
+
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    FOREIGN KEY (asset_id) REFERENCES assets(id),
-    FOREIGN KEY (loaned_to_id) REFERENCES users(id),
-    FOREIGN KEY (loaned_by_id) REFERENCES users(id)
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        ON UPDATE CURRENT_TIMESTAMP,
+
+    FOREIGN KEY (asset_id)
+        REFERENCES assets(id),
+
+    FOREIGN KEY (loaned_to_id)
+        REFERENCES users(id),
+
+    FOREIGN KEY (loaned_by_id)
+        REFERENCES users(id)
 );
 
 -- =============================================
@@ -678,19 +826,33 @@ CREATE TABLE temporary_loans (
 
 CREATE TABLE service_entries (
     id BIGINT PRIMARY KEY AUTO_INCREMENT,
+
     grv_entry_id BIGINT,
+
     asset_id BIGINT,
-    service_type VARCHAR(50) NOT NULL,
+
     description TEXT NOT NULL,
+
     vendor VARCHAR(100),
-    cost DECIMAL(10, 2),
+
+    cost DECIMAL(10,2),
+
     date_performed DATE NOT NULL,
+
     performed_by_id BIGINT,
+
     notes TEXT,
+
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (grv_entry_id) REFERENCES grv_entries(id),
-    FOREIGN KEY (asset_id) REFERENCES assets(id),
-    FOREIGN KEY (performed_by_id) REFERENCES users(id)
+
+    FOREIGN KEY (grv_entry_id)
+        REFERENCES grv_entries(id),
+
+    FOREIGN KEY (asset_id)
+        REFERENCES assets(id),
+
+    FOREIGN KEY (performed_by_id)
+        REFERENCES users(id)
 );
 
 -- =============================================
@@ -700,32 +862,45 @@ CREATE TABLE service_entries (
 CREATE TABLE audit_logs (
     id BIGINT PRIMARY KEY AUTO_INCREMENT,
     user_id BIGINT,
-    action VARCHAR(50) NOT NULL,
-    entity_type VARCHAR(50) NOT NULL,
+    entity_name VARCHAR(100) NOT NULL,
     entity_id BIGINT NOT NULL,
+    action VARCHAR(20) NOT NULL,
+
     old_values JSON,
     new_values JSON,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+
+    occurred_at TIMESTAMP NOT NULL,
+
     ip_address VARCHAR(45),
-    FOREIGN KEY (user_id) REFERENCES users(id)
+
+    FOREIGN KEY (user_id)
+        REFERENCES users(id)
 );
 
 -- =============================================
 -- INDEXES FOR PERFORMANCE
 -- =============================================
 
-CREATE INDEX idx_assets_asset_code ON assets(asset_code);
-CREATE INDEX idx_assets_serial_number ON assets(serial_number);
-CREATE INDEX idx_assets_status ON assets(status);
-CREATE INDEX idx_assets_brand ON assets(brand);
-CREATE INDEX idx_asset_locations_current ON asset_locations(asset_id, is_current);
-CREATE INDEX idx_asset_assignments_current ON asset_assignments(asset_id, is_current);
-CREATE INDEX idx_inventory_items_quantity ON inventory_items(quantity);
-CREATE INDEX idx_inventory_items_brand ON inventory_items(brand);
-CREATE INDEX idx_temporary_loans_active ON temporary_loans(asset_id, actual_return_date);
-CREATE INDEX idx_service_entries_asset ON service_entries(asset_id);
-CREATE INDEX idx_audit_logs_entity ON audit_logs(entity_type, entity_id);
-CREATE INDEX idx_audit_logs_created ON audit_logs(created_at);
+CREATE INDEX idx_asset_status_history
+ON asset_status_history(asset_id, valid_from);
+
+CREATE INDEX idx_asset_location_history
+ON asset_location_history(asset_id, valid_from);
+
+CREATE INDEX idx_asset_assignment_history
+ON asset_assignment_history(asset_id, valid_from);
+
+CREATE INDEX idx_consumable_transactions_asset
+ON consumable_transactions(asset_id);
+
+CREATE INDEX idx_consumable_transactions_consumable
+ON consumable_transactions(consumable_id);
+
+CREATE INDEX idx_audit_entity
+ON audit_logs(entity_name, entity_id);
+
+CREATE INDEX idx_audit_occurred
+ON audit_logs(occurred_at);
 ```
 
 ### 8.6 Entity Descriptions

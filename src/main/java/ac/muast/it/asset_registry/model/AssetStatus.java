@@ -18,9 +18,11 @@ public enum AssetStatus {
     IN_REPAIR("In Repair", "Undergoing maintenance or repair",
         Set.of(Action.CHECKIN, Action.LOST, Action.DECOMMISSION)),
     
-    DECOMMISSIONED("Decommissioned", "Retired from service", Set.of()),
+    DECOMMISSIONED("Decommissioned", "Retired from service", 
+        Set.of(Action.RECOVER)),
     
-    LOST("Lost", "Reported as lost or missing", Set.of());
+    LOST("Lost", "Reported as lost or missing", 
+        Set.of(Action.RECOVER));
 
     private final String displayName;
     private final String description;
@@ -48,6 +50,7 @@ public enum AssetStatus {
         public static final String REPAIR = "repair";
         public static final String LOST = "lost";
         public static final String DECOMMISSION = "decommission";
+        public static final String RECOVER = "recover";
         
         private Action() {}
     }

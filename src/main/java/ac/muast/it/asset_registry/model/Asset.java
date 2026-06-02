@@ -3,7 +3,6 @@ package ac.muast.it.asset_registry.model;
 
 import jakarta.persistence.*;
 import lombok.*;
-
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -22,8 +21,8 @@ public class Asset {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "asset_code", unique = true, nullable = false, length = 50)
-    private String assetCode;
+    @Column(unique = true, nullable = false, length = 50)
+    private String code;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "grv_entry_id")
@@ -37,29 +36,22 @@ public class Asset {
     @EqualsAndHashCode.Exclude
     private AssetType assetType;
 
+    @Column(name = "current_status", nullable = false, length = 30)
+    @Enumerated(EnumType.STRING)
+    @Builder.Default
+    private AssetStatus currentStatus = AssetStatus.AVAILABLE;
+
     @Column(length = 50)
     private String brand;
 
     @Column(name = "serial_number", unique = true, length = 100)
     private String serialNumber;
 
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false, length = 30)
-    @Builder.Default
-    private AssetStatus status = AssetStatus.AVAILABLE;
-
     @Column(name = "purchase_date")
     private LocalDate purchaseDate;
 
     @Column(name = "purchase_cost", precision = 10, scale = 2)
     private BigDecimal purchaseCost;
-
-    @Column(name = "replacement_threshold", precision = 10, scale = 2)
-    private BigDecimal replacementThreshold;
-
-    @Column(name = "total_consumable_cost", precision = 10, scale = 2)
-    @Builder.Default
-    private BigDecimal totalConsumableCost = BigDecimal.ZERO;
 
     @Column(columnDefinition = "JSON")
     private String specs;
@@ -77,13 +69,19 @@ public class Asset {
     @Builder.Default
     @ToString.Exclude
     @EqualsAndHashCode.Exclude
-    private List<AssetLocation> locations = new ArrayList<>();
+    private List<AssetStatusHistory> statusHistory = new ArrayList<>();
 
     @OneToMany(mappedBy = "asset", cascade = CascadeType.ALL, orphanRemoval = true)
     @Builder.Default
     @ToString.Exclude
     @EqualsAndHashCode.Exclude
-    private List<AssetAssignment> assignments = new ArrayList<>();
+    private List<AssetLocationHistory> locationHistory = new ArrayList<>();
+
+    @OneToMany(mappedBy = "asset", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Builder.Default
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
+    private List<AssetAssignmentHistory> assignmentHistory = new ArrayList<>();
 
     @PrePersist
     protected void onCreate() {
@@ -96,16 +94,23 @@ public class Asset {
         updatedAt = LocalDateTime.now();
     }
 
-    public AssetLocation getCurrentLocation() {
-        return locations.stream()
-            .filter(AssetLocation::getIsCurrent)
+    public AssetStatusHistory getCurrentStatusRecord() {
+        return statusHistory.stream()
+            .filter(s -> s.getValidTo().equals(AssetHistory.MAX_VALID_TO))
             .findFirst()
             .orElse(null);
     }
 
-    public AssetAssignment getCurrentAssignment() {
-        return assignments.stream()
-            .filter(AssetAssignment::getIsCurrent)
+    public AssetLocationHistory getCurrentLocationRecord() {
+        return locationHistory.stream()
+            .filter(l -> l.getValidTo().equals(AssetHistory.MAX_VALID_TO))
+            .findFirst()
+            .orElse(null);
+    }
+
+    public AssetAssignmentHistory getCurrentAssignmentRecord() {
+        return assignmentHistory.stream()
+            .filter(a -> a.getValidTo().equals(AssetHistory.MAX_VALID_TO))
             .findFirst()
             .orElse(null);
     }

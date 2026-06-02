@@ -1,20 +1,17 @@
-// model/AssetLocation.java
+// model/AssetLocationHistory.java
 package ac.muast.it.asset_registry.model;
 
 import jakarta.persistence.*;
 import lombok.*;
-
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "asset_locations", uniqueConstraints = {
-    @UniqueConstraint(columnNames = {"asset_id", "is_current"})
-})
+@Table(name = "asset_location_history")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class AssetLocation {
+public class AssetLocationHistory {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -32,16 +29,9 @@ public class AssetLocation {
     @EqualsAndHashCode.Exclude
     private Office office;
 
-    @Column(name = "is_current")
-    @Builder.Default
-    private Boolean isCurrent = true;
+    @Column(name = "valid_from", nullable = false)
+    private LocalDateTime validFrom;
 
-    @Column(name = "assigned_at")
-    @Builder.Default
-    private LocalDateTime assignedAt = LocalDateTime.now();
-
-    // Helper — get campus via office
-    public Campus getCampus() {
-        return office != null ? office.getCampus() : null;
-    }
+    @Column(name = "valid_to", nullable = false)
+    private LocalDateTime validTo;
 }

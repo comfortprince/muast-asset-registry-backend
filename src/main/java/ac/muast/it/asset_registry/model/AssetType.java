@@ -1,3 +1,4 @@
+// model/AssetType.java
 package ac.muast.it.asset_registry.model;
 
 import jakarta.persistence.*;
@@ -17,11 +18,11 @@ public class AssetType {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false, length = 50)
-    private String name;
+    @Column(unique = true, nullable = false, length = 50)
+    private String code;              // e.g., "DESKTOP", "LAPTOP"
 
-    @Column(name = "display_name", nullable = false, length = 50)
-    private String displayName;
+    @Column(unique = true, nullable = false, length = 50)
+    private String name;              // e.g., "Desktop Computer"
 
     @Column(columnDefinition = "TEXT")
     private String description;
@@ -33,6 +34,10 @@ public class AssetType {
     @Column(name = "track_quantity")
     @Builder.Default
     private Boolean trackQuantity = false;
+
+    @Column(name = "track_consumable_replacement")
+    @Builder.Default
+    private Boolean trackConsumableReplacement = false;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "category_id", nullable = false)

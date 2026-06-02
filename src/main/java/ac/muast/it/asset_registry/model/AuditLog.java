@@ -3,7 +3,6 @@ package ac.muast.it.asset_registry.model;
 
 import jakarta.persistence.*;
 import lombok.*;
-
 import java.time.LocalDateTime;
 
 @Entity
@@ -24,14 +23,15 @@ public class AuditLog {
     @EqualsAndHashCode.Exclude
     private User user;
 
-    @Column(nullable = false, length = 50)
-    private String action;            // e.g., "CREATE", "UPDATE", "DELETE", "ASSIGN"
-
-    @Column(name = "entity_type", nullable = false, length = 50)
-    private String entityType;        // e.g., "Asset", "User", "GrvEntry"
+    @Column(name = "entity_name", nullable = false, length = 100)
+    private String entityName;
 
     @Column(name = "entity_id", nullable = false)
     private Long entityId;
+
+    @Column(nullable = false, length = 20)
+    @Enumerated(EnumType.STRING)
+    private AuditAction action;
 
     @Column(name = "old_values", columnDefinition = "JSON")
     private String oldValues;
@@ -39,14 +39,16 @@ public class AuditLog {
     @Column(name = "new_values", columnDefinition = "JSON")
     private String newValues;
 
-    @Column(name = "created_at", updatable = false)
-    private LocalDateTime createdAt;
+    @Column(name = "occurred_at", nullable = false)
+    private LocalDateTime occurredAt;
 
     @Column(name = "ip_address", length = 45)
     private String ipAddress;
 
     @PrePersist
     protected void onCreate() {
-        createdAt = LocalDateTime.now();
+        if (occurredAt == null) {
+            occurredAt = LocalDateTime.now();
+        }
     }
 }

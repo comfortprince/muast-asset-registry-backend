@@ -23,12 +23,13 @@ public class Role {
     
     private String description;
     
-    @ManyToMany(fetch = FetchType.EAGER)
-    @JoinTable(
+    @ElementCollection(fetch = FetchType.EAGER)
+    @CollectionTable(
         name = "role_permissions",
-        joinColumns = @JoinColumn(name = "role_id"),
-        inverseJoinColumns = @JoinColumn(name = "permission_id")
+        joinColumns = @JoinColumn(name = "role_id")
     )
+    @Column(name = "permission_name")
+    @Enumerated(EnumType.STRING)
     @Builder.Default
     private Set<Permission> permissions = new HashSet<>();
 }

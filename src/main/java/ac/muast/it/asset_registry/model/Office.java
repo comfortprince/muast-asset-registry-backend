@@ -6,7 +6,7 @@ import lombok.*;
 
 @Entity
 @Table(name = "offices", uniqueConstraints = {
-    @UniqueConstraint(columnNames = {"campus_id", "name"})
+    @UniqueConstraint(columnNames = {"campus_id", "code"})
 })
 @Data
 @NoArgsConstructor
@@ -18,11 +18,11 @@ public class Office {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false, length = 50)
-    private String name;              // e.g., "IT_OFFICE_1"
+    @Column(unique = true, nullable = false, length = 50)
+    private String code;              // e.g., "IT_OFFICE"
 
-    @Column(name = "display_name", nullable = false, length = 50)
-    private String displayName;        // e.g., "IT Office 1"
+    @Column(unique = true, nullable = false, length = 50)
+    private String name;              // e.g., "IT Office"
 
     @Column(columnDefinition = "TEXT")
     private String description;

@@ -3,7 +3,6 @@ package ac.muast.it.asset_registry.model;
 
 import jakarta.persistence.*;
 import lombok.*;
-
 import java.util.ArrayList;
 import java.util.List;
 
@@ -20,15 +19,20 @@ public class Campus {
     private Long id;
 
     @Column(unique = true, nullable = false, length = 10)
-    private String name;              // e.g., "CSC", "MAR", "AIP"
+    private String code;              // e.g., "CSC", "MAR", "AIP"
 
-    @Column(name = "display_name", nullable = false, length = 50)
-    private String displayName;        // e.g., "Main Campus"
+    @Column(unique = true, nullable = false, length = 50)
+    private String name;              // e.g., "Main Campus"
+
+    @Column(columnDefinition = "TEXT")
+    private String description;
 
     @Column(columnDefinition = "TEXT")
     private String address;
 
     @OneToMany(mappedBy = "campus", cascade = CascadeType.ALL, orphanRemoval = true)
     @Builder.Default
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
     private List<Office> offices = new ArrayList<>();
 }

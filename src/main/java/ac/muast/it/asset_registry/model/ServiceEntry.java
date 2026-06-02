@@ -32,9 +32,6 @@ public class ServiceEntry {
     @EqualsAndHashCode.Exclude
     private Asset asset;
 
-    @Column(name = "service_type", nullable = false, length = 50)
-    private String serviceType;
-
     @Column(nullable = false, columnDefinition = "TEXT")
     private String description;
 
