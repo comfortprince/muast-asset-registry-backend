@@ -7,7 +7,5 @@ import java.util.List;
 
 public interface ServiceEntryRepository extends JpaRepository<ServiceEntry, Long> {
     List<ServiceEntry> findByAssetIdOrderByDatePerformedDesc(Long assetId);
-    List<ServiceEntry> findByServiceType(String serviceType);
     List<ServiceEntry> findByVendor(String vendor);
-    List<ServiceEntry> findByAsset_AssetType_Id(Long assetTypeId);
 }
