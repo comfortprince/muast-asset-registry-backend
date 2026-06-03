@@ -7,6 +7,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
+
+import java.time.LocalDateTime;
 import java.util.Optional;
 
 public interface AssetStatusHistoryRepository extends JpaRepository<AssetStatusHistory, Long> {
@@ -23,7 +25,10 @@ public interface AssetStatusHistoryRepository extends JpaRepository<AssetStatusH
         SELECT ash FROM AssetStatusHistory ash 
         JOIN FETCH ash.asset 
         WHERE ash.asset.id = :assetId 
-        AND ash.validTo = '9000-01-01T00:00:00'
+        AND ash.validTo = :validTo
     """)
-    Optional<AssetStatusHistory> findCurrentByAssetId(@Param("assetId") Long assetId);
+    Optional<AssetStatusHistory> findCurrentByAssetId(
+        @Param("assetId") Long assetId,
+        @Param("validTo") LocalDateTime validTo
+    );
 }

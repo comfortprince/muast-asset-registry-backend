@@ -131,6 +131,28 @@ public class AssetClassificationService {
             .toList();
     }
 
+    // AssetClassificationService
+    public AssetTypeResponse getAssetTypeById(Long id) {
+        AssetType assetType = assetTypeRepository.findById(id)
+            .orElseThrow(() -> new ResourceNotFoundException("Asset type not found: " + id));
+        return mapAssetTypeToResponse(assetType);
+    }
+
+    public void deleteAssetType(Long id) {
+        assetTypeRepository.deleteById(id);
+    }
+
+    public AssetTypeResponse updateAssetType(Long id, CreateAssetTypeRequest request) {
+        AssetType assetType = assetTypeRepository.findById(id)
+            .orElseThrow(() -> new ResourceNotFoundException("Asset type not found: " + id));
+        assetType.setName(request.getName());
+        assetType.setDescription(request.getDescription());
+        assetType.setTrackIndividual(request.getTrackIndividual());
+        assetType.setTrackQuantity(request.getTrackQuantity());
+        assetType.setTrackConsumableReplacement(request.getTrackConsumableReplacement());
+        return mapAssetTypeToResponse(assetTypeRepository.save(assetType));
+    }
+
     // =============================================
     // MAPPERS
     // =============================================

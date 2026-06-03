@@ -40,7 +40,7 @@ public class AssetManagementService {
         LocalDateTime now = LocalDateTime.now();
 
         // Close current assignment
-        assignmentHistoryRepository.findCurrentByAssetId(asset.getId())
+        assignmentHistoryRepository.findCurrentByAssetId(asset.getId(), AssetHistory.MAX_VALID_TO)
             .ifPresent(current -> {
                 current.setValidTo(now);
                 assignmentHistoryRepository.save(current);
@@ -80,7 +80,7 @@ public class AssetManagementService {
         LocalDateTime now = LocalDateTime.now();
 
         // Close current location
-        locationHistoryRepository.findCurrentByAssetId(asset.getId())
+        locationHistoryRepository.findCurrentByAssetId(asset.getId(), AssetHistory.MAX_VALID_TO)
             .ifPresent(current -> {
                 current.setValidTo(now);
                 locationHistoryRepository.save(current);
@@ -109,7 +109,7 @@ public class AssetManagementService {
         LocalDateTime now = LocalDateTime.now();
 
         // Close current assignment
-        assignmentHistoryRepository.findCurrentByAssetId(asset.getId())
+        assignmentHistoryRepository.findCurrentByAssetId(asset.getId(), AssetHistory.MAX_VALID_TO)
             .ifPresent(current -> {
                 current.setValidTo(now);
                 assignmentHistoryRepository.save(current);
@@ -149,7 +149,7 @@ public class AssetManagementService {
         LocalDateTime now = LocalDateTime.now();
 
         // Close current assignment
-        assignmentHistoryRepository.findCurrentByAssetId(id)
+        assignmentHistoryRepository.findCurrentByAssetId(id, AssetHistory.MAX_VALID_TO)
             .ifPresent(current -> {
                 current.setValidTo(now);
                 current.setNotes(notes);
@@ -175,14 +175,14 @@ public class AssetManagementService {
         LocalDateTime now = LocalDateTime.now();
 
         // Close current assignment
-        assignmentHistoryRepository.findCurrentByAssetId(asset.getId())
+        assignmentHistoryRepository.findCurrentByAssetId(asset.getId(), AssetHistory.MAX_VALID_TO)
             .ifPresent(current -> {
                 current.setValidTo(now);
                 assignmentHistoryRepository.save(current);
             });
 
         // Close current location
-        locationHistoryRepository.findCurrentByAssetId(asset.getId())
+        locationHistoryRepository.findCurrentByAssetId(asset.getId(), AssetHistory.MAX_VALID_TO)
             .ifPresent(current -> {
                 current.setValidTo(now);
                 locationHistoryRepository.save(current);
@@ -229,7 +229,7 @@ public class AssetManagementService {
     }
 
     private void closeCurrentStatus(Asset asset, LocalDateTime now) {
-        statusHistoryRepository.findCurrentByAssetId(asset.getId())
+        statusHistoryRepository.findCurrentByAssetId(asset.getId(), AssetHistory.MAX_VALID_TO)
             .ifPresent(current -> {
                 current.setValidTo(now);
                 statusHistoryRepository.save(current);

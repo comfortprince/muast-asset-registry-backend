@@ -2,7 +2,8 @@
 package ac.muast.it.asset_registry.controller;
 
 import ac.muast.it.asset_registry.dto.response.AssetAssignmentResponse;
-import ac.muast.it.asset_registry.repository.AssetAssignmentRepository;
+import ac.muast.it.asset_registry.model.AssetHistory;
+import ac.muast.it.asset_registry.repository.AssetAssignmentHistoryRepository;
 import jakarta.validation.constraints.Min;
 import lombok.RequiredArgsConstructor;
 
@@ -17,13 +18,13 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/api/assetAssignments")
+@RequestMapping("/api/assets/assetAssignments")
 @RequiredArgsConstructor
 @Validated
 @Transactional(readOnly = true)
 public class AssetAssignmentController {
 
-    private final AssetAssignmentRepository assetAssignmentRepository;
+    private final AssetAssignmentHistoryRepository assignmentHistoryRepository;
 
     @GetMapping("")
     @PreAuthorize("hasAuthority('READ_ASSETS')")
@@ -32,20 +33,17 @@ public class AssetAssignmentController {
         @RequestParam(defaultValue = "20") @Min(1) int size
     ) {
         Pageable pageable = PageRequest.of(page, size);
-        Page<AssetAssignmentResponse> assignments = assetAssignmentRepository
+        Page<AssetAssignmentResponse> assignments = assignmentHistoryRepository
             .findAll(pageable)
             .map(aa -> AssetAssignmentResponse.builder()
                 .id(aa.getId())
                 .assetId(aa.getAsset().getId())
-                .assetCode(aa.getAsset().getAssetCode())
-                .assetBrand(aa.getAsset().getBrand())
-                .userId(aa.getUser() != null ? aa.getUser().getId() : null)
-                .username(aa.getUser() != null ? aa.getUser().getUsername() : null)
+                .userId(aa.getUser().getId())
+                .username(aa.getUser().getUsername())
                 .roleAtAssignment(aa.getRoleAtAssignment())
-                .isCurrent(aa.getIsCurrent())
-                .assignedAt(aa.getAssignedAt())
-                .returnedAt(aa.getReturnedAt())
                 .notes(aa.getNotes())
+                .validFrom(aa.getValidFrom())
+                .validTo(aa.getValidTo())
                 .build()
             );
         return new PagedModel<>(assignments);
@@ -54,19 +52,16 @@ public class AssetAssignmentController {
     @GetMapping("/{id}")
     @PreAuthorize("hasAuthority('READ_ASSETS')")
     public ResponseEntity<AssetAssignmentResponse> getById(@PathVariable Long id) {
-        return assetAssignmentRepository.findById(id)
+        return assignmentHistoryRepository.findById(id)
             .map(aa -> AssetAssignmentResponse.builder()
                 .id(aa.getId())
                 .assetId(aa.getAsset().getId())
-                .assetCode(aa.getAsset().getAssetCode())
-                .assetBrand(aa.getAsset().getBrand())
-                .userId(aa.getUser() != null ? aa.getUser().getId() : null)
-                .username(aa.getUser() != null ? aa.getUser().getUsername() : null)
+                .userId(aa.getUser().getId())
+                .username(aa.getUser().getUsername())
                 .roleAtAssignment(aa.getRoleAtAssignment())
-                .isCurrent(aa.getIsCurrent())
-                .assignedAt(aa.getAssignedAt())
-                .returnedAt(aa.getReturnedAt())
                 .notes(aa.getNotes())
+                .validFrom(aa.getValidFrom())
+                .validTo(aa.getValidTo())
                 .build())
             .map(ResponseEntity::ok)
             .orElse(ResponseEntity.notFound().build());
@@ -80,19 +75,16 @@ public class AssetAssignmentController {
         @RequestParam(defaultValue = "20") @Min(1) int size
     ) {
         Pageable pageable = PageRequest.of(page, size);
-        Page<AssetAssignmentResponse> assignments = assetAssignmentRepository
-            .findByAssetIdOrderByAssignedAtDesc(assetId, pageable)
+        Page<AssetAssignmentResponse> assignments = assignmentHistoryRepository
+            .findByAssetIdOrderByValidFromDesc(assetId, pageable)
             .map(aa -> AssetAssignmentResponse.builder()
                 .id(aa.getId())
-                .assetId(aa.getAsset().getId())
-                .assetCode(aa.getAsset().getAssetCode())
-                .userId(aa.getUser() != null ? aa.getUser().getId() : null)
-                .username(aa.getUser() != null ? aa.getUser().getUsername() : null)
+                .userId(aa.getUser().getId())
+                .username(aa.getUser().getUsername())
                 .roleAtAssignment(aa.getRoleAtAssignment())
-                .isCurrent(aa.getIsCurrent())
-                .assignedAt(aa.getAssignedAt())
-                .returnedAt(aa.getReturnedAt())
                 .notes(aa.getNotes())
+                .validFrom(aa.getValidFrom())
+                .validTo(aa.getValidTo())
                 .build()
             );
         return new PagedModel<>(assignments);
@@ -106,20 +98,17 @@ public class AssetAssignmentController {
         @RequestParam(defaultValue = "20") @Min(1) int size
     ) {
         Pageable pageable = PageRequest.of(page, size);
-        Page<AssetAssignmentResponse> assignments = assetAssignmentRepository
-            .findByUserIdOrderByAssignedAtDesc(userId, pageable)
+        Page<AssetAssignmentResponse> assignments = assignmentHistoryRepository
+            .findByUserIdOrderByValidFromDesc(userId, pageable)
             .map(aa -> AssetAssignmentResponse.builder()
                 .id(aa.getId())
                 .assetId(aa.getAsset().getId())
-                .assetCode(aa.getAsset().getAssetCode())
-                .assetBrand(aa.getAsset().getBrand())
-                .userId(aa.getUser() != null ? aa.getUser().getId() : null)
-                .username(aa.getUser() != null ? aa.getUser().getUsername() : null)
+                .userId(aa.getUser().getId())
+                .username(aa.getUser().getUsername())
                 .roleAtAssignment(aa.getRoleAtAssignment())
-                .isCurrent(aa.getIsCurrent())
-                .assignedAt(aa.getAssignedAt())
-                .returnedAt(aa.getReturnedAt())
                 .notes(aa.getNotes())
+                .validFrom(aa.getValidFrom())
+                .validTo(aa.getValidTo())
                 .build()
             );
         return new PagedModel<>(assignments);
@@ -128,19 +117,16 @@ public class AssetAssignmentController {
     @GetMapping("/search/current/{assetId}")
     @PreAuthorize("hasAuthority('READ_ASSETS')")
     public ResponseEntity<AssetAssignmentResponse> getCurrentAssignment(@PathVariable Long assetId) {
-        return assetAssignmentRepository.findByAssetIdAndIsCurrentTrue(assetId)
+        return assignmentHistoryRepository.findCurrentByAssetId(assetId, AssetHistory.MAX_VALID_TO)
             .map(aa -> AssetAssignmentResponse.builder()
                 .id(aa.getId())
                 .assetId(aa.getAsset().getId())
-                .assetCode(aa.getAsset().getAssetCode())
-                .assetBrand(aa.getAsset().getBrand())
-                .userId(aa.getUser() != null ? aa.getUser().getId() : null)
-                .username(aa.getUser() != null ? aa.getUser().getUsername() : null)
+                .userId(aa.getUser().getId())
+                .username(aa.getUser().getUsername())
                 .roleAtAssignment(aa.getRoleAtAssignment())
-                .isCurrent(aa.getIsCurrent())
-                .assignedAt(aa.getAssignedAt())
-                .returnedAt(aa.getReturnedAt())
                 .notes(aa.getNotes())
+                .validFrom(aa.getValidFrom())
+                .validTo(aa.getValidTo())
                 .build())
             .map(ResponseEntity::ok)
             .orElse(ResponseEntity.notFound().build());

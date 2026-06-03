@@ -123,7 +123,7 @@ public class LoanController {
         return LoanResponse.builder()
             .id(loan.getId())
             .assetId(loan.getAsset().getId())
-            .assetCode(loan.getAsset().getAssetCode())
+            .assetCode(loan.getAsset().getCode())         // ← getCode
             .assetBrand(loan.getAsset().getBrand())
             .loanedToId(loan.getLoanedTo().getId())
             .loanedToUsername(loan.getLoanedTo().getUsername())
