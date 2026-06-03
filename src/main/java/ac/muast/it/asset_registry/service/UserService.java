@@ -1,7 +1,9 @@
+// service/UserService.java
 package ac.muast.it.asset_registry.service;
 
+import ac.muast.it.asset_registry.dto.request.CreateUserRequest;
+import ac.muast.it.asset_registry.dto.request.UpdateUserRequest;
 import ac.muast.it.asset_registry.dto.response.UserResponse;
-import ac.muast.it.asset_registry.dto.request.UserRegistrationRequest;
 import ac.muast.it.asset_registry.exception.ResourceNotFoundException;
 import ac.muast.it.asset_registry.exception.UserAlreadyExistsException;
 import ac.muast.it.asset_registry.model.Role;
@@ -9,14 +11,16 @@ import ac.muast.it.asset_registry.model.User;
 import ac.muast.it.asset_registry.repository.RoleRepository;
 import ac.muast.it.asset_registry.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -27,138 +31,119 @@ public class UserService {
     private final PasswordEncoder passwordEncoder;
 
     @Transactional
-    public User createUser(UserRegistrationRequest request) {
-        // Check if user already exists
+    public UserResponse createUser(CreateUserRequest request) {
+        if (userRepository.existsByUsername(request.getUsername())) {
+            throw new UserAlreadyExistsException("Username already exists: " + request.getUsername());
+        }
         if (userRepository.existsByEmail(request.getEmail())) {
             throw new UserAlreadyExistsException("Email already registered: " + request.getEmail());
         }
-        if (userRepository.existsByUsername(request.getUsername())) {
-            throw new UserAlreadyExistsException("Username already taken: " + request.getUsername());
-        }
 
-        // Get roles
         Set<Role> roles = new HashSet<>();
-        for (String roleName : request.getRoleNames()) {
-            Role role = roleRepository.findByName(roleName)
-                .orElseThrow(() -> new ResourceNotFoundException("Role not found: " + roleName));
-            roles.add(role);
+        if (request.getRoles() != null) {
+            for (String roleName : request.getRoles()) {
+                Role role = roleRepository.findByName(roleName)
+                    .orElseThrow(() -> new ResourceNotFoundException("Role not found: " + roleName));
+                roles.add(role);
+            }
         }
 
-        // Build user
         User user = User.builder()
             .username(request.getUsername())
             .email(request.getEmail())
             .password(passwordEncoder.encode(request.getPassword()))
             .firstName(request.getFirstName())
             .lastName(request.getLastName())
-            .roles(roles)
-            .enabled(true)
-            .accountNonExpired(true)
+            .enabled(request.getEnabled() != null ? request.getEnabled() : true)
             .accountNonLocked(true)
+            .accountNonExpired(true)
             .credentialsNonExpired(true)
             .mustChangePassword(true)
+            .roles(roles)
             .build();
 
-        User savedUser = userRepository.save(user);
-        return savedUser;
+        User saved = userRepository.save(user);
+        return mapToResponse(saved);
     }
 
-    public User getUserById(Long id) {
+    @Transactional(readOnly = true)
+    public Page<UserResponse> getAllUsers(Pageable pageable) {
+        return userRepository.findAll(pageable).map(this::mapToResponse);
+    }
+
+    @Transactional(readOnly = true)
+    public UserResponse getUserById(Long id) {
         User user = userRepository.findById(id)
-            .orElseThrow(() -> new ResourceNotFoundException("User not found with id: " + id));
-        return user;
+            .orElseThrow(() -> new ResourceNotFoundException("User not found: " + id));
+        return mapToResponse(user);
     }
 
+    @Transactional(readOnly = true)
     public User getUserByUsername(String username) {
-        User user = userRepository.findByUsername(username)
+        return userRepository.findByUsername(username)
             .orElseThrow(() -> new ResourceNotFoundException("User not found: " + username));
-        return user;
-    }
-
-    public List<User> getAllUsers() {
-        return userRepository.findAll()
-            .stream()
-            .toList();
     }
 
     @Transactional
-    public User updateUser(Long id, User user) {
-      userRepository.findById(id)
-        .orElseThrow(() -> new ResourceNotFoundException("User not found with id: " + id));
+    public UserResponse updateUser(Long id, UpdateUserRequest request) {
+        User user = userRepository.findById(id)
+            .orElseThrow(() -> new ResourceNotFoundException("User not found: " + id));
 
-      return userRepository.save(user);
-    }
+        user.setFirstName(request.getFirstName());
+        user.setLastName(request.getLastName());
+        user.setEmail(request.getEmail());
 
-    @Transactional
-    public void updateLastLogin(String username) {
-        userRepository.findByUsername(username).ifPresent(user -> {
-            user.setLastLogin(LocalDateTime.now());
-            userRepository.save(user);
-        });
-    }
-
-    @Transactional
-    public void changePassword(Long userId, String oldPassword, String newPassword) {
-        User user = userRepository.findById(userId)
-            .orElseThrow(() -> new ResourceNotFoundException("User not found with id: " + userId));
-
-        if (!passwordEncoder.matches(oldPassword, user.getPassword())) {
-            throw new IllegalArgumentException("Current password is incorrect");
+        if (request.getPassword() != null && !request.getPassword().isBlank()) {
+            user.setPassword(passwordEncoder.encode(request.getPassword()));
         }
 
-        user.setPassword(passwordEncoder.encode(newPassword));
-        user.setMustChangePassword(false);
-        userRepository.save(user);
+        if (request.getRoles() != null) {
+            Set<Role> roles = new HashSet<>();
+            for (String roleName : request.getRoles()) {
+                Role role = roleRepository.findByName(roleName)
+                    .orElseThrow(() -> new ResourceNotFoundException("Role not found: " + roleName));
+                roles.add(role);
+            }
+            user.setRoles(roles);
+        }
+
+        if (request.getEnabled() != null) {
+            user.setEnabled(request.getEnabled());
+        }
+
+        return mapToResponse(userRepository.save(user));
     }
 
     @Transactional
     public void toggleUserStatus(Long id, boolean enabled) {
-      User user = userRepository.findById(id)
-        .orElseThrow(() -> new ResourceNotFoundException("User not found with id: " + id));
-      user.setEnabled(enabled);
-      userRepository.save(user);
+        User user = userRepository.findById(id)
+            .orElseThrow(() -> new ResourceNotFoundException("User not found: " + id));
+        user.setEnabled(enabled);
+        userRepository.save(user);
     }
 
-    @Transactional
-    public void deleteUser(Long id) {
-      userRepository.findById(id)
-        .orElseThrow(() -> new ResourceNotFoundException("User not found with id: " + id));
-      userRepository.deleteById(id);;
+    @Transactional(readOnly = true)
+    public List<UserResponse> searchUsers(String username) {
+        if (username == null || username.isBlank()) {
+            return List.of();
+        }
+        return userRepository.findByUsernameContainingIgnoreCase(username).stream()
+            .map(this::mapToResponse)
+            .toList();
     }
 
-    @Transactional
-    public void disableUser(Long id){
-        toggleUserStatus(id, false);
-    }
-
-    public List<User> getUsersByRole(String roleName) {
-      return userRepository.findAll()
-        .stream()
-        .filter(user -> user.getRoles().stream()
-          .anyMatch(role -> role.getName().equalsIgnoreCase(roleName)))
-        .toList();
-    }
-
-    public UserResponse mapToResponse(User user) {
+    private UserResponse mapToResponse(User user) {
         return UserResponse.builder()
             .id(user.getId())
             .username(user.getUsername())
             .email(user.getEmail())
             .firstName(user.getFirstName())
             .lastName(user.getLastName())
-            .roles(user.getRoles().stream().map(Role::getName).toList())
             .enabled(user.isEnabled())
-            .mustChangePassword(user.isMustChangePassword())
-            .lastLogin(user.getLastLogin())
+            .accountNonLocked(user.isAccountNonLocked())
+            .roles(user.getRoles().stream().map(Role::getName).collect(Collectors.toSet()))
             .createdAt(user.getCreatedAt())
+            .lastLogin(user.getLastLogin())
             .build();
-    }
-
-    public boolean existsByUsername(String username){
-        return userRepository.existsByUsername(username);
-    }
-
-    public boolean existsByEmail(String email){
-        return userRepository.existsByEmail(email);
     }
 }

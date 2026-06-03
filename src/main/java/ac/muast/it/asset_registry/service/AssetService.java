@@ -1,186 +1,141 @@
 // service/AssetService.java
 package ac.muast.it.asset_registry.service;
 
-import ac.muast.it.asset_registry.dto.request.AssignAssetRequest;
-import ac.muast.it.asset_registry.dto.request.TransferAssetRequest;
+import ac.muast.it.asset_registry.dto.request.CreateAssetRequest;
+import ac.muast.it.asset_registry.dto.response.*;
 import ac.muast.it.asset_registry.exception.ResourceNotFoundException;
 import ac.muast.it.asset_registry.model.*;
 import ac.muast.it.asset_registry.repository.*;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDateTime;
-
 @Service
 @RequiredArgsConstructor
-@Slf4j
 public class AssetService {
 
     private final AssetRepository assetRepository;
-    private final AssetAssignmentRepository assetAssignmentRepository;
-    private final AssetLocationRepository assetLocationRepository;
-    private final UserRepository userRepository;
-    private final OfficeRepository officeRepository;
+    private final AssetTypeRepository assetTypeRepository;
+    private final GrvEntryRepository grvEntryRepository;
+    private final AssetStatusHistoryRepository statusHistoryRepository;
 
     @Transactional
-    public Asset assignAsset(String assetCode, AssignAssetRequest request) {
-        Asset asset = assetRepository.findByAssetCode(assetCode)
-            .orElseThrow(() -> new ResourceNotFoundException("Asset not found: " + assetCode));
+    public AssetResponse createAsset(CreateAssetRequest request) {
+        AssetType assetType = assetTypeRepository.findById(request.getAssetTypeId())
+            .orElseThrow(() -> new ResourceNotFoundException("Asset type not found: " + request.getAssetTypeId()));
 
-        validateAction(asset, AssetStatus.Action.ASSIGN);
+        GrvEntry grvEntry = null;
+        if (request.getGrvEntryId() != null) {
+            grvEntry = grvEntryRepository.findById(request.getGrvEntryId())
+                .orElseThrow(() -> new ResourceNotFoundException("GRV entry not found: " + request.getGrvEntryId()));
+        }
 
-        User user = userRepository.findByUsername(request.getUsername())
-            .orElseThrow(() -> new ResourceNotFoundException("User not found: " + request.getUsername()));
-
-        assetAssignmentRepository.findByAssetIdAndIsCurrentTrue(asset.getId())
-            .ifPresent(current -> {
-                current.setIsCurrent(false);
-                current.setReturnedAt(LocalDateTime.now());
-                assetAssignmentRepository.save(current);
-            });
-
-        AssetAssignment assignment = AssetAssignment.builder()
-            .asset(asset)
-            .user(user)
-            .roleAtAssignment(request.getRoleAtAssignment())
-            .isCurrent(true)
-            .assignedAt(LocalDateTime.now())
+        Asset asset = Asset.builder()
+            .code(request.getCode())
+            .assetType(assetType)
+            .grvEntry(grvEntry)
+            .brand(request.getBrand())
+            .serialNumber(request.getSerialNumber())
+            .currentStatus(AssetStatus.AVAILABLE)
+            .purchaseDate(request.getPurchaseDate())
+            .purchaseCost(request.getPurchaseCost())
+            .specs(request.getSpecs())
             .notes(request.getNotes())
             .build();
-        assetAssignmentRepository.save(assignment);
 
-        asset.setStatus(AssetStatus.ASSIGNED);
         asset = assetRepository.save(asset);
 
-        log.info("Asset {} assigned to {} as {}", 
-            assetCode, request.getUsername(), request.getRoleAtAssignment());
-        return asset;
-    }
-
-    @Transactional
-    public Asset transferAsset(String assetCode, TransferAssetRequest request) {
-        Asset asset = assetRepository.findByAssetCode(assetCode)
-            .orElseThrow(() -> new ResourceNotFoundException("Asset not found: " + assetCode));
-
-        validateAction(asset, AssetStatus.Action.TRANSFER);
-
-        Office office = officeRepository.findById(request.getOfficeId())
-            .orElseThrow(() -> new ResourceNotFoundException("Office not found"));
-
-        assetLocationRepository.findByAssetIdAndIsCurrentTrue(asset.getId())
-            .ifPresent(current -> {
-                current.setIsCurrent(false);
-                assetLocationRepository.save(current);
-            });
-
-        AssetLocation location = AssetLocation.builder()
+        // Create initial status history
+        AssetStatusHistory statusHistory = AssetStatusHistory.builder()
             .asset(asset)
-            .office(office)
-            .isCurrent(true)
-            .assignedAt(LocalDateTime.now())
+            .status(AssetStatus.AVAILABLE)
+            .reason("Asset created")
+            .validFrom(java.time.LocalDateTime.now())
+            .validTo(AssetHistory.MAX_VALID_TO)
             .build();
-        assetLocationRepository.save(location);
+        statusHistoryRepository.save(statusHistory);
 
-        log.info("Asset {} transferred to office {}", assetCode, office.getDisplayName());
-        return asset;
+        return mapToResponse(asset);
+    }
+
+    @Transactional(readOnly = true)
+    public Page<AssetResponse> getAllAssets(Pageable pageable) {
+        return assetRepository.findAll(pageable).map(this::mapToResponse);
+    }
+
+    @Transactional(readOnly = true)
+    public AssetResponse getAssetById(Long id) {
+        Asset asset = assetRepository.findById(id)
+            .orElseThrow(() -> new ResourceNotFoundException("Asset not found: " + id));
+        return mapToResponse(asset);
     }
 
     @Transactional
-    public Asset checkinAsset(String assetCode) {
-        Asset asset = assetRepository.findByAssetCode(assetCode)
-            .orElseThrow(() -> new ResourceNotFoundException("Asset not found: " + assetCode));
+    public AssetResponse updateAsset(Long id, CreateAssetRequest request) {
+        Asset asset = assetRepository.findById(id)
+            .orElseThrow(() -> new ResourceNotFoundException("Asset not found: " + id));
 
-        validateAction(asset, AssetStatus.Action.CHECKIN);
-        
-        assetAssignmentRepository.findByAssetIdAndIsCurrentTrue(asset.getId())
-            .ifPresent(current -> {
-                current.setIsCurrent(false);
-                current.setReturnedAt(LocalDateTime.now());
-                assetAssignmentRepository.save(current);
-            });
+        AssetType assetType = assetTypeRepository.findById(request.getAssetTypeId())
+            .orElseThrow(() -> new ResourceNotFoundException("Asset type not found: " + request.getAssetTypeId()));
 
-        asset.setStatus(AssetStatus.AVAILABLE);
-        return assetRepository.save(asset);
+        asset.setAssetType(assetType);
+        asset.setBrand(request.getBrand());
+        asset.setSerialNumber(request.getSerialNumber());
+        asset.setPurchaseDate(request.getPurchaseDate());
+        asset.setPurchaseCost(request.getPurchaseCost());
+        asset.setSpecs(request.getSpecs());
+        asset.setNotes(request.getNotes());
+
+        return mapToResponse(assetRepository.save(asset));
     }
 
     @Transactional
-    public Asset sendForRepair(String assetCode) {
-        Asset asset = assetRepository.findByAssetCode(assetCode)
-            .orElseThrow(() -> new ResourceNotFoundException("Asset not found: " + assetCode));
-
-        validateAction(asset, AssetStatus.Action.REPAIR);
-
-        asset.setStatus(AssetStatus.IN_REPAIR);
-        return assetRepository.save(asset);
+    public void deleteAsset(Long id) {
+        assetRepository.deleteById(id);
     }
 
-    @Transactional
-    public Asset markAsLost(String assetCode, String notes) {
-        Asset asset = assetRepository.findByAssetCode(assetCode)
-            .orElseThrow(() -> new ResourceNotFoundException("Asset not found: " + assetCode));
+    public AssetResponse mapToResponse(Asset asset) {
+        AssetLocationHistory currentLocation = asset.getCurrentLocationRecord();
+        AssetAssignmentHistory currentAssignment = asset.getCurrentAssignmentRecord();
 
-        validateAction(asset, AssetStatus.Action.LOST);
-
-        assetAssignmentRepository.findByAssetIdAndIsCurrentTrue(asset.getId())
-            .ifPresent(current -> {
-                current.setIsCurrent(false);
-                current.setReturnedAt(LocalDateTime.now());
-                current.setNotes(notes);
-                assetAssignmentRepository.save(current);
-            });
-
-        asset.setStatus(AssetStatus.LOST);
-        asset.setNotes(notes);
-        return assetRepository.save(asset);
-    }
-
-    @Transactional
-    public Asset decommissionAsset(String assetCode, String notes) {
-        Asset asset = assetRepository.findByAssetCode(assetCode)
-            .orElseThrow(() -> new ResourceNotFoundException("Asset not found: " + assetCode));
-
-        validateAction(asset, AssetStatus.Action.DECOMMISSION);
-
-        assetAssignmentRepository.findByAssetIdAndIsCurrentTrue(asset.getId())
-            .ifPresent(current -> {
-                current.setIsCurrent(false);
-                current.setReturnedAt(LocalDateTime.now());
-                assetAssignmentRepository.save(current);
-            });
-
-        // Close current location
-        assetLocationRepository.findByAssetIdAndIsCurrentTrue(asset.getId())
-            .ifPresent(current -> {
-                current.setIsCurrent(false);
-                assetLocationRepository.save(current);
-            });
-
-        asset.setStatus(AssetStatus.DECOMMISSIONED);
-        asset.setNotes(notes);
-        return assetRepository.save(asset);
-    }
-
-    @Transactional
-    public Asset recoverAsset(String assetCode, AssetStatus targetStatus) {
-        Asset asset = assetRepository.findByAssetCode(assetCode)
-            .orElseThrow(() -> new ResourceNotFoundException("Asset not found: " + assetCode));
-
-        // Only allow recovery from terminal states
-        if (asset.getStatus() != AssetStatus.LOST && asset.getStatus() != AssetStatus.DECOMMISSIONED) {
-            throw new IllegalStateException("Recovery only available for LOST or DECOMMISSIONED assets");
-        }
-
-        asset.setStatus(targetStatus);
-        asset.setNotes(asset.getNotes() + " | Recovered from " + asset.getStatus() + " on " + LocalDateTime.now());
-        return assetRepository.save(asset);
-    }
-
-    private void validateAction(Asset asset, String action) {
-        if (!asset.getStatus().canPerform(action)) {
-            throw new IllegalStateException(
-                "Cannot " + action + " asset with status " + asset.getStatus());
-        }
+        return AssetResponse.builder()
+            .id(asset.getId())
+            .code(asset.getCode())
+            .assetTypeId(asset.getAssetType() != null ? asset.getAssetType().getId() : null)
+            .assetTypeName(asset.getAssetType() != null ? asset.getAssetType().getName() : null)
+            .grvEntryId(asset.getGrvEntry() != null ? asset.getGrvEntry().getId() : null)
+            .brand(asset.getBrand())
+            .serialNumber(asset.getSerialNumber())
+            .status(asset.getCurrentStatus().name())
+            .purchaseDate(asset.getPurchaseDate())
+            .purchaseCost(asset.getPurchaseCost())
+            .specs(asset.getSpecs())
+            .notes(asset.getNotes())
+            .currentLocation(currentLocation != null ? AssetLocationResponse.builder()
+                .id(currentLocation.getId())
+                .assetId(currentLocation.getAsset().getId())
+                .officeId(currentLocation.getOffice().getId())
+                .officeName(currentLocation.getOffice().getName())
+                .campusName(currentLocation.getOffice().getCampus().getName())
+                .validFrom(currentLocation.getValidFrom())
+                .validTo(currentLocation.getValidTo())
+                .build() : null)
+            .currentAssignment(currentAssignment != null ? AssetAssignmentResponse.builder()
+                .id(currentAssignment.getId())
+                .assetId(currentAssignment.getAsset().getId())
+                .userId(currentAssignment.getUser().getId())
+                .username(currentAssignment.getUser().getUsername())
+                .roleAtAssignment(currentAssignment.getRoleAtAssignment())
+                .notes(currentAssignment.getNotes())
+                .validFrom(currentAssignment.getValidFrom())
+                .validTo(currentAssignment.getValidTo())
+                .build() : null)
+            .allowedActions(asset.getCurrentStatus().getAllowedActions())
+            .createdAt(asset.getCreatedAt())
+            .updatedAt(asset.getUpdatedAt())
+            .build();
     }
 }

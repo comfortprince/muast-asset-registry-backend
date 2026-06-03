@@ -3,20 +3,18 @@ package ac.muast.it.asset_registry.dto.request;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
-import lombok.Builder;
 import lombok.Data;
 import java.util.Set;
 
 @Data
-@Builder
-public class UserRegistrationRequest {
+public class CreateUserRequest {
     
     @NotBlank(message = "Username is required")
     @Size(min = 3, max = 50)
     private String username;
     
     @NotBlank(message = "Email is required")
-    @Email(message = "Invalid email format")
+    @Email(message = "Invalid email")
     private String email;
     
     @NotBlank(message = "Password is required")
@@ -29,5 +27,6 @@ public class UserRegistrationRequest {
     @NotBlank(message = "Last name is required")
     private String lastName;
     
-    private Set<String> roleNames;
+    private Boolean enabled;
+    private Set<String> roles;
 }

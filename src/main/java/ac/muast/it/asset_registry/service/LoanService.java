@@ -25,12 +25,12 @@ public class LoanService {
     @Transactional
     public TemporaryLoan createLoan(CreateLoanRequest request, String loanedByUsername) {
         // Find asset
-        Asset asset = assetRepository.findByAssetCode(request.getAssetCode())
+        Asset asset = assetRepository.findByCode(request.getAssetCode())
             .orElseThrow(() -> new ResourceNotFoundException("Asset not found: " + request.getAssetCode()));
 
         // Validate asset is available
-        if (asset.getStatus() != AssetStatus.AVAILABLE) {
-            throw new IllegalStateException("Asset must be AVAILABLE to loan. Current status: " + asset.getStatus());
+        if (asset.getCurrentStatus() != AssetStatus.AVAILABLE) {
+            throw new IllegalStateException("Asset must be AVAILABLE to loan. Current status: " + asset.getCurrentStatus());
         }
 
         // Find users
@@ -53,7 +53,7 @@ public class LoanService {
         loan = loanRepository.save(loan);
 
         // Update asset status
-        asset.setStatus(AssetStatus.ON_LOAN);
+        asset.setCurrentStatus(AssetStatus.ON_LOAN);
         assetRepository.save(asset);
 
         log.info("Asset {} loaned to {} by {}, due {}", 
@@ -77,10 +77,10 @@ public class LoanService {
 
         // Update asset status back to available
         Asset asset = loan.getAsset();
-        asset.setStatus(AssetStatus.AVAILABLE);
+        asset.setCurrentStatus(AssetStatus.AVAILABLE);
         assetRepository.save(asset);
 
-        log.info("Asset {} returned from loan by {}", asset.getAssetCode(), loan.getLoanedTo().getUsername());
+        log.info("Asset {} returned from loan by {}", asset.getCode(), loan.getLoanedTo().getUsername());
         return loan;
     }
 }

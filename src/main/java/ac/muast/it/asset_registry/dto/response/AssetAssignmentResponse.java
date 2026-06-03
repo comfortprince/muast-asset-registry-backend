@@ -1,3 +1,4 @@
+// dto/response/AssetAssignmentResponse.java
 package ac.muast.it.asset_registry.dto.response;
 
 import lombok.Builder;
@@ -9,13 +10,10 @@ import java.time.LocalDateTime;
 public class AssetAssignmentResponse {
     private Long id;
     private Long assetId;
-    private String assetCode;
-    private String assetBrand;
     private Long userId;
     private String username;
     private String roleAtAssignment;
-    private Boolean isCurrent;
-    private LocalDateTime assignedAt;
-    private LocalDateTime returnedAt;
     private String notes;
+    private LocalDateTime validFrom;
+    private LocalDateTime validTo;
 }

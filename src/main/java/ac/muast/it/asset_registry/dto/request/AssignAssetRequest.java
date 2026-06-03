@@ -1,13 +1,13 @@
 // dto/request/AssignAssetRequest.java
 package ac.muast.it.asset_registry.dto.request;
 
-import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 
 @Data
 public class AssignAssetRequest {
-    @NotBlank(message = "Username is required")
-    private String username;
+    @NotNull(message = "User id is required")
+    private Long userId;
 
     private String roleAtAssignment;
     private String notes;

@@ -3,7 +3,7 @@ package ac.muast.it.asset_registry.dto.response;
 import lombok.Builder;
 import lombok.Data;
 import java.time.LocalDateTime;
-import java.util.List;
+import java.util.Set;
 
 @Data
 @Builder
@@ -13,9 +13,10 @@ public class UserResponse {
     private String email;
     private String firstName;
     private String lastName;
-    private List<String> roles;
-    private boolean enabled;
-    private boolean mustChangePassword;
+    private Set<String> roles;
+    private Boolean enabled;
+    private Boolean accountNonLocked;
+    private Boolean mustChangePassword;
     private LocalDateTime lastLogin;
     private LocalDateTime createdAt;
 }

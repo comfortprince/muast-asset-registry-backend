@@ -1,4 +1,4 @@
-// dto/AssetLocationResponse.java
+// dto/response/AssetLocationResponse.java
 package ac.muast.it.asset_registry.dto.response;
 
 import lombok.Builder;
@@ -11,6 +11,8 @@ public class AssetLocationResponse {
     private Long id;
     private Long assetId;
     private Long officeId;
-    private Boolean isCurrent;
-    private LocalDateTime assignedAt;
+    private String officeName;
+    private String campusName;
+    private LocalDateTime validFrom;
+    private LocalDateTime validTo;
 }
