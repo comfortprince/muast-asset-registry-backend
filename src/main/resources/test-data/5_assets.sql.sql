@@ -1,168 +1,228 @@
 -- =============================================
--- FILE 5: ASSETS TEST DATA (Legacy — No GRV)
+-- FILE 4: ASSETS TEST DATA (Legacy — No GRV)
 -- =============================================
--- Description: Test data for individually tracked assets, locations, and assignments
--- Order: Run this FIFTH (after File 4 or skip GRV)
--- Tables: assets, asset_locations, asset_assignments
+-- Description: Test data for individually tracked assets with history
+-- Order: Run this FOURTH (after File 3)
+-- Tables: assets, asset_status_history, asset_location_history, asset_assignment_history
 -- Dependencies: asset_types, campuses, offices, users
--- Note: All assets are legacy — grv_entry_id is NULL
 -- =============================================
 
 -- =============================================
 -- 1. LAPTOPS (10 units)
 -- =============================================
 
-INSERT INTO assets (asset_code, asset_type_id, brand, serial_number, status, purchase_date, purchase_cost, specs, notes) VALUES
-('CSC-LAP-001', (SELECT id FROM asset_types WHERE name = 'LAPTOP'), 'Dell', 'LAT5420-001', 'ASSIGNED', '2024-03-15', 750.00, '{"cpu": "Intel Core i5", "ram": "16GB", "storage": "512GB SSD"}', 'Assigned to IT Manager'),
-('CSC-LAP-002', (SELECT id FROM asset_types WHERE name = 'LAPTOP'), 'Dell', 'LAT5420-002', 'ASSIGNED', '2024-03-15', 750.00, '{"cpu": "Intel Core i5", "ram": "16GB", "storage": "512GB SSD"}', 'Assigned to Admin Officer'),
-('CSC-LAP-003', (SELECT id FROM asset_types WHERE name = 'LAPTOP'), 'Dell', 'LAT5420-003', 'AVAILABLE', '2024-03-15', 750.00, '{"cpu": "Intel Core i5", "ram": "16GB", "storage": "512GB SSD"}', 'Spare laptop in IT storage'),
-('CSC-LAP-004', (SELECT id FROM asset_types WHERE name = 'LAPTOP'), 'Dell', 'LAT5420-004', 'IN_REPAIR', '2024-03-15', 750.00, '{"cpu": "Intel Core i5", "ram": "16GB", "storage": "512GB SSD"}', 'Screen repair needed'),
-('MAR-LAP-001', (SELECT id FROM asset_types WHERE name = 'LAPTOP'), 'Dell', 'LAT5420-005', 'ASSIGNED', '2024-06-20', 750.00, '{"cpu": "Intel Core i5", "ram": "16GB", "storage": "512GB SSD"}', 'Marondera campus IT office'),
-('MAR-LAP-002', (SELECT id FROM asset_types WHERE name = 'LAPTOP'), 'Dell', 'LAT5420-006', 'AVAILABLE', '2024-06-20', 750.00, '{"cpu": "Intel Core i5", "ram": "16GB", "storage": "512GB SSD"}', 'Spare for Marondera campus'),
-('AIP-LAP-001', (SELECT id FROM asset_types WHERE name = 'LAPTOP'), 'Dell', 'LAT5420-007', 'ASSIGNED', '2024-09-10', 750.00, '{"cpu": "Intel Core i5", "ram": "16GB", "storage": "512GB SSD"}', 'AIP campus admin'),
-('CSC-LAP-005', (SELECT id FROM asset_types WHERE name = 'LAPTOP'), 'HP', 'ELITE840-001', 'LOST', '2024-03-15', 850.00, '{"cpu": "Intel Core i7", "ram": "16GB", "storage": "512GB SSD"}', 'Reported lost — investigation pending'),
-('CSC-LAP-006', (SELECT id FROM asset_types WHERE name = 'LAPTOP'), 'HP', 'ELITE840-002', 'AVAILABLE', '2024-03-15', 850.00, '{"cpu": "Intel Core i7", "ram": "16GB", "storage": "512GB SSD"}', 'Available for new staff'),
-('CSC-LAP-007', (SELECT id FROM asset_types WHERE name = 'LAPTOP'), 'Lenovo', 'X1CARBON-001', 'AVAILABLE', '2025-01-10', 1200.00, '{"cpu": "Intel Core i7", "ram": "16GB", "storage": "1TB SSD"}', 'Executive laptop — unassigned');
+INSERT INTO assets (code, asset_type_id, brand, serial_number, current_status, purchase_date, purchase_cost, specs, notes)
+SELECT 'CSC-LAP-001', at.id, 'Dell', 'LAT5420-001', 'ASSIGNED', '2024-03-15', 750.00, '{"cpu": "Intel Core i5", "ram": "16GB", "storage": "512GB SSD"}', 'Assigned to IT Manager'
+FROM asset_types at WHERE at.code = 'LAPTOP';
+
+INSERT INTO assets (code, asset_type_id, brand, serial_number, current_status, purchase_date, purchase_cost, specs, notes)
+SELECT 'CSC-LAP-002', at.id, 'Dell', 'LAT5420-002', 'ASSIGNED', '2024-03-15', 750.00, '{"cpu": "Intel Core i5", "ram": "16GB", "storage": "512GB SSD"}', 'Assigned to Admin Officer'
+FROM asset_types at WHERE at.code = 'LAPTOP';
+
+INSERT INTO assets (code, asset_type_id, brand, serial_number, current_status, purchase_date, purchase_cost, specs, notes)
+SELECT 'CSC-LAP-003', at.id, 'Dell', 'LAT5420-003', 'AVAILABLE', '2024-03-15', 750.00, '{"cpu": "Intel Core i5", "ram": "16GB", "storage": "512GB SSD"}', 'Spare laptop in IT storage'
+FROM asset_types at WHERE at.code = 'LAPTOP';
+
+INSERT INTO assets (code, asset_type_id, brand, serial_number, current_status, purchase_date, purchase_cost, specs, notes)
+SELECT 'CSC-LAP-004', at.id, 'Dell', 'LAT5420-004', 'IN_REPAIR', '2024-03-15', 750.00, '{"cpu": "Intel Core i5", "ram": "16GB", "storage": "512GB SSD"}', 'Screen repair needed'
+FROM asset_types at WHERE at.code = 'LAPTOP';
+
+INSERT INTO assets (code, asset_type_id, brand, serial_number, current_status, purchase_date, purchase_cost, specs, notes)
+SELECT 'MAR-LAP-001', at.id, 'Dell', 'LAT5420-005', 'ASSIGNED', '2024-06-20', 750.00, '{"cpu": "Intel Core i5", "ram": "16GB", "storage": "512GB SSD"}', 'Marondera campus IT office'
+FROM asset_types at WHERE at.code = 'LAPTOP';
+
+INSERT INTO assets (code, asset_type_id, brand, serial_number, current_status, purchase_date, purchase_cost, specs, notes)
+SELECT 'MAR-LAP-002', at.id, 'Dell', 'LAT5420-006', 'AVAILABLE', '2024-06-20', 750.00, '{"cpu": "Intel Core i5", "ram": "16GB", "storage": "512GB SSD"}', 'Spare for Marondera campus'
+FROM asset_types at WHERE at.code = 'LAPTOP';
+
+INSERT INTO assets (code, asset_type_id, brand, serial_number, current_status, purchase_date, purchase_cost, specs, notes)
+SELECT 'AIP-LAP-001', at.id, 'Dell', 'LAT5420-007', 'ASSIGNED', '2024-09-10', 750.00, '{"cpu": "Intel Core i5", "ram": "16GB", "storage": "512GB SSD"}', 'AIP campus admin'
+FROM asset_types at WHERE at.code = 'LAPTOP';
+
+INSERT INTO assets (code, asset_type_id, brand, serial_number, current_status, purchase_date, purchase_cost, specs, notes)
+SELECT 'CSC-LAP-005', at.id, 'HP', 'ELITE840-001', 'LOST', '2024-03-15', 850.00, '{"cpu": "Intel Core i7", "ram": "16GB", "storage": "512GB SSD"}', 'Reported lost'
+FROM asset_types at WHERE at.code = 'LAPTOP';
+
+INSERT INTO assets (code, asset_type_id, brand, serial_number, current_status, purchase_date, purchase_cost, specs, notes)
+SELECT 'CSC-LAP-006', at.id, 'HP', 'ELITE840-002', 'AVAILABLE', '2024-03-15', 850.00, '{"cpu": "Intel Core i7", "ram": "16GB", "storage": "512GB SSD"}', 'Available for new staff'
+FROM asset_types at WHERE at.code = 'LAPTOP';
+
+INSERT INTO assets (code, asset_type_id, brand, serial_number, current_status, purchase_date, purchase_cost, specs, notes)
+SELECT 'CSC-LAP-007', at.id, 'Lenovo', 'X1CARBON-001', 'AVAILABLE', '2025-01-10', 1200.00, '{"cpu": "Intel Core i7", "ram": "16GB", "storage": "1TB SSD"}', 'Executive laptop'
+FROM asset_types at WHERE at.code = 'LAPTOP';
 
 -- =============================================
 -- 2. PROJECTORS (5 units)
 -- =============================================
 
-INSERT INTO assets (asset_code, asset_type_id, brand, serial_number, status, purchase_date, purchase_cost, specs, notes) VALUES
-('CSC-PRJ-001', (SELECT id FROM asset_types WHERE name = 'PROJECTOR'), 'Epson', 'EB1795-001', 'AVAILABLE', '2024-03-15', 1200.00, '{"lumens": "6000", "resolution": "1920x1200", "technology": "3LCD"}', 'Lecture Hall A projector'),
-('CSC-PRJ-002', (SELECT id FROM asset_types WHERE name = 'PROJECTOR'), 'Epson', 'EB1795-002', 'ON_LOAN', '2024-03-15', 1200.00, '{"lumens": "6000", "resolution": "1920x1200", "technology": "3LCD"}', 'Currently on loan to Dr. Moyo'),
-('MAR-PRJ-001', (SELECT id FROM asset_types WHERE name = 'PROJECTOR'), 'Epson', 'EB1795-003', 'AVAILABLE', '2024-06-20', 1200.00, '{"lumens": "6000", "resolution": "1920x1200", "technology": "3LCD"}', 'Marondera library projector'),
-('AIP-PRJ-001', (SELECT id FROM asset_types WHERE name = 'PROJECTOR'), 'BenQ', 'LU930-001', 'AVAILABLE', '2024-09-10', 1100.00, '{"lumens": "6000", "resolution": "1920x1200", "technology": "DLP"}', 'AIP innovation hub'),
-('CSC-PRJ-003', (SELECT id FROM asset_types WHERE name = 'PROJECTOR'), 'Epson', 'EB1795-004', 'IN_REPAIR', '2024-03-15', 1200.00, '{"lumens": "6000", "resolution": "1920x1200", "technology": "3LCD"}', 'Lamp replacement needed');
+INSERT INTO assets (code, asset_type_id, brand, serial_number, current_status, purchase_date, purchase_cost, specs, notes)
+SELECT 'CSC-PRJ-001', at.id, 'Epson', 'EB1795-001', 'AVAILABLE', '2024-03-15', 1200.00, '{"lumens": "6000", "resolution": "1920x1200", "technology": "3LCD"}', 'Lecture Hall 1 projector'
+FROM asset_types at WHERE at.code = 'PROJECTOR';
+
+INSERT INTO assets (code, asset_type_id, brand, serial_number, current_status, purchase_date, purchase_cost, specs, notes)
+SELECT 'CSC-PRJ-002', at.id, 'Epson', 'EB1795-002', 'ON_LOAN', '2024-03-15', 1200.00, '{"lumens": "6000", "resolution": "1920x1200", "technology": "3LCD"}', 'Currently on loan'
+FROM asset_types at WHERE at.code = 'PROJECTOR';
+
+INSERT INTO assets (code, asset_type_id, brand, serial_number, current_status, purchase_date, purchase_cost, specs, notes)
+SELECT 'MAR-PRJ-001', at.id, 'Epson', 'EB1795-003', 'AVAILABLE', '2024-06-20', 1200.00, '{"lumens": "6000", "resolution": "1920x1200", "technology": "3LCD"}', 'Marondera library projector'
+FROM asset_types at WHERE at.code = 'PROJECTOR';
+
+INSERT INTO assets (code, asset_type_id, brand, serial_number, current_status, purchase_date, purchase_cost, specs, notes)
+SELECT 'AIP-PRJ-001', at.id, 'BenQ', 'LU930-001', 'AVAILABLE', '2024-09-10', 1100.00, '{"lumens": "6000", "resolution": "1920x1200", "technology": "DLP"}', 'AIP innovation hub'
+FROM asset_types at WHERE at.code = 'PROJECTOR';
+
+INSERT INTO assets (code, asset_type_id, brand, serial_number, current_status, purchase_date, purchase_cost, specs, notes)
+SELECT 'CSC-PRJ-003', at.id, 'Epson', 'EB1795-004', 'IN_REPAIR', '2024-03-15', 1200.00, '{"lumens": "6000", "resolution": "1920x1200", "technology": "3LCD"}', 'Lamp replacement needed'
+FROM asset_types at WHERE at.code = 'PROJECTOR';
 
 -- =============================================
 -- 3. PRINTERS (3 units)
 -- =============================================
 
-INSERT INTO assets (asset_code, asset_type_id, brand, serial_number, status, purchase_date, purchase_cost, total_consumable_cost, specs, notes) VALUES
-('CSC-PRT-001', (SELECT id FROM asset_types WHERE name = 'PRINTER'), 'HP', 'M404-001', 'ASSIGNED', '2024-05-05', 450.00, 340.00, '{"type": "Laser", "speed": "40ppm", "duplex": true, "color": false}', 'Finance Department printer — 4 toners used'),
-('CSC-PRT-002', (SELECT id FROM asset_types WHERE name = 'PRINTER'), 'HP', 'M404-002', 'AVAILABLE', '2024-05-05', 450.00, 0.00, '{"type": "Laser", "speed": "40ppm", "duplex": true, "color": false}', 'IT Office backup printer'),
-('MAR-PRT-001', (SELECT id FROM asset_types WHERE name = 'PRINTER'), 'HP', 'M404-003', 'ASSIGNED', '2024-06-20', 450.00, 170.00, '{"type": "Laser", "speed": "40ppm", "duplex": true, "color": false}', 'Marondera admin — 2 toners used');
+INSERT INTO assets (code, asset_type_id, brand, serial_number, current_status, purchase_date, purchase_cost, specs, notes)
+SELECT 'CSC-PRT-001', at.id, 'HP', 'M404-001', 'ASSIGNED', '2024-05-05', 450.00, '{"type": "Laser", "speed": "40ppm", "duplex": true, "color": false}', 'Finance Department printer'
+FROM asset_types at WHERE at.code = 'PRINTER';
+
+INSERT INTO assets (code, asset_type_id, brand, serial_number, current_status, purchase_date, purchase_cost, specs, notes)
+SELECT 'CSC-PRT-002', at.id, 'HP', 'M404-002', 'AVAILABLE', '2024-05-05', 450.00, '{"type": "Laser", "speed": "40ppm", "duplex": true, "color": false}', 'IT Office backup printer'
+FROM asset_types at WHERE at.code = 'PRINTER';
+
+INSERT INTO assets (code, asset_type_id, brand, serial_number, current_status, purchase_date, purchase_cost, specs, notes)
+SELECT 'MAR-PRT-001', at.id, 'HP', 'M404-003', 'ASSIGNED', '2024-06-20', 450.00, '{"type": "Laser", "speed": "40ppm", "duplex": true, "color": false}', 'Marondera admin printer'
+FROM asset_types at WHERE at.code = 'PRINTER';
 
 -- =============================================
 -- 4. DESKTOP COMPUTERS (4 units)
 -- =============================================
 
-INSERT INTO assets (asset_code, asset_type_id, brand, serial_number, status, purchase_date, purchase_cost, specs, notes) VALUES
-('CSC-DSK-001', (SELECT id FROM asset_types WHERE name = 'DESKTOP'), 'Dell', 'OPT7060-001', 'ASSIGNED', '2024-03-15', 900.00, '{"cpu": "Intel Core i7", "ram": "16GB", "storage": "512GB SSD", "monitor": "Dell 27 inch 4K"}', 'IT Manager workstation'),
-('CSC-DSK-002', (SELECT id FROM asset_types WHERE name = 'DESKTOP'), 'Dell', 'OPT7060-002', 'ASSIGNED', '2024-03-15', 900.00, '{"cpu": "Intel Core i7", "ram": "16GB", "storage": "512GB SSD", "monitor": "Dell 24 inch"}', 'Admin Office workstation'),
-('MAR-DSK-001', (SELECT id FROM asset_types WHERE name = 'DESKTOP'), 'Dell', 'OPT7060-003', 'ASSIGNED', '2024-06-20', 900.00, '{"cpu": "Intel Core i5", "ram": "8GB", "storage": "256GB SSD", "monitor": "Dell 24 inch"}', 'Marondera admin workstation'),
-('AIP-DSK-001', (SELECT id FROM asset_types WHERE name = 'DESKTOP'), 'Lenovo', 'M90T-001', 'ASSIGNED', '2024-09-10', 950.00, '{"cpu": "Intel Core i7", "ram": "16GB", "storage": "512GB SSD", "monitor": "Lenovo 27 inch"}', 'AIP innovation hub workstation');
+INSERT INTO assets (code, asset_type_id, brand, serial_number, current_status, purchase_date, purchase_cost, specs, notes)
+SELECT 'CSC-DSK-001', at.id, 'Dell', 'OPT7060-001', 'ASSIGNED', '2024-03-15', 900.00, '{"cpu": "Intel Core i7", "ram": "16GB", "storage": "512GB SSD"}', 'IT Manager workstation'
+FROM asset_types at WHERE at.code = 'DESKTOP';
+
+INSERT INTO assets (code, asset_type_id, brand, serial_number, current_status, purchase_date, purchase_cost, specs, notes)
+SELECT 'CSC-DSK-002', at.id, 'Dell', 'OPT7060-002', 'ASSIGNED', '2024-03-15', 900.00, '{"cpu": "Intel Core i7", "ram": "16GB", "storage": "512GB SSD"}', 'Admin Office workstation'
+FROM asset_types at WHERE at.code = 'DESKTOP';
+
+INSERT INTO assets (code, asset_type_id, brand, serial_number, current_status, purchase_date, purchase_cost, specs, notes)
+SELECT 'MAR-DSK-001', at.id, 'Dell', 'OPT7060-003', 'ASSIGNED', '2024-06-20', 900.00, '{"cpu": "Intel Core i5", "ram": "8GB", "storage": "256GB SSD"}', 'Marondera admin workstation'
+FROM asset_types at WHERE at.code = 'DESKTOP';
+
+INSERT INTO assets (code, asset_type_id, brand, serial_number, current_status, purchase_date, purchase_cost, specs, notes)
+SELECT 'AIP-DSK-001', at.id, 'Lenovo', 'M90T-001', 'ASSIGNED', '2024-09-10', 950.00, '{"cpu": "Intel Core i7", "ram": "16GB", "storage": "512GB SSD"}', 'AIP innovation hub workstation'
+FROM asset_types at WHERE at.code = 'DESKTOP';
 
 -- =============================================
 -- 5. NETWORK EQUIPMENT (3 units)
 -- =============================================
 
-INSERT INTO assets (asset_code, asset_type_id, brand, serial_number, status, purchase_date, purchase_cost, specs, notes) VALUES
-('CSC-SWT-001', (SELECT id FROM asset_types WHERE name = 'SWITCH'), 'Cisco', 'CAT9300-001', 'ASSIGNED', '2024-09-12', 2500.00, '{"ports": 48, "speed": "10Gbps", "poe": true}', 'Main server room switch'),
-('CSC-SWT-002', (SELECT id FROM asset_types WHERE name = 'SWITCH'), 'Cisco', 'CAT9200-001', 'ASSIGNED', '2024-09-12', 1500.00, '{"ports": 24, "speed": "1Gbps", "poe": true}', 'Computer Lab 1 switch'),
-('CSC-RTR-001', (SELECT id FROM asset_types WHERE name = 'ROUTER'), 'Cisco', 'ISR4321-001', 'ASSIGNED', '2024-09-12', 1800.00, '{"throughput": "100Mbps", "vpn": true}', 'Main campus router');
+INSERT INTO assets (code, asset_type_id, brand, serial_number, current_status, purchase_date, purchase_cost, specs, notes)
+SELECT 'CSC-SWT-001', at.id, 'Cisco', 'CAT9300-001', 'ASSIGNED', '2024-09-12', 2500.00, '{"ports": 48, "speed": "10Gbps", "poe": true}', 'Server room switch'
+FROM asset_types at WHERE at.code = 'SWITCH';
+
+INSERT INTO assets (code, asset_type_id, brand, serial_number, current_status, purchase_date, purchase_cost, specs, notes)
+SELECT 'CSC-SWT-002', at.id, 'Cisco', 'CAT9200-001', 'ASSIGNED', '2024-09-12', 1500.00, '{"ports": 24, "speed": "1Gbps", "poe": true}', 'Computer Lab A switch'
+FROM asset_types at WHERE at.code = 'SWITCH';
+
+INSERT INTO assets (code, asset_type_id, brand, serial_number, current_status, purchase_date, purchase_cost, specs, notes)
+SELECT 'CSC-RTR-001', at.id, 'Cisco', 'ISR4321-001', 'ASSIGNED', '2024-09-12', 1800.00, '{"throughput": "100Mbps", "vpn": true}', 'Main campus router'
+FROM asset_types at WHERE at.code = 'ROUTER';
 
 -- =============================================
 -- 6. MONITORS (3 units)
 -- =============================================
 
-INSERT INTO assets (asset_code, asset_type_id, brand, serial_number, status, purchase_date, purchase_cost, specs, notes) VALUES
-('CSC-MON-001', (SELECT id FROM asset_types WHERE name = 'MONITOR'), 'Dell', 'U2723QE-001', 'ASSIGNED', '2024-03-15', 500.00, '{"size": "27 inch", "resolution": "4K", "panel": "IPS"}', 'IT Manager second monitor'),
-('CSC-MON-002', (SELECT id FROM asset_types WHERE name = 'MONITOR'), 'Dell', 'P2422H-001', 'AVAILABLE', '2024-03-15', 200.00, '{"size": "24 inch", "resolution": "1080p", "panel": "IPS"}', 'Spare monitor in storage'),
-('MAR-MON-001', (SELECT id FROM asset_types WHERE name = 'MONITOR'), 'LG', '27UP850-001', 'ASSIGNED', '2024-06-20', 450.00, '{"size": "27 inch", "resolution": "4K", "panel": "IPS"}', 'Marondera library display');
+INSERT INTO assets (code, asset_type_id, brand, serial_number, current_status, purchase_date, purchase_cost, specs, notes)
+SELECT 'CSC-MON-001', at.id, 'Dell', 'U2723QE-001', 'ASSIGNED', '2024-03-15', 500.00, '{"size": "27 inch", "resolution": "4K", "panel": "IPS"}', 'IT Manager second monitor'
+FROM asset_types at WHERE at.code = 'MONITOR';
+
+INSERT INTO assets (code, asset_type_id, brand, serial_number, current_status, purchase_date, purchase_cost, specs, notes)
+SELECT 'CSC-MON-002', at.id, 'Dell', 'P2422H-001', 'AVAILABLE', '2024-03-15', 200.00, '{"size": "24 inch", "resolution": "1080p", "panel": "IPS"}', 'Spare monitor in storage'
+FROM asset_types at WHERE at.code = 'MONITOR';
+
+INSERT INTO assets (code, asset_type_id, brand, serial_number, current_status, purchase_date, purchase_cost, specs, notes)
+SELECT 'MAR-MON-001', at.id, 'LG', '27UP850-001', 'ASSIGNED', '2024-06-20', 450.00, '{"size": "27 inch", "resolution": "4K", "panel": "IPS"}', 'Marondera library display'
+FROM asset_types at WHERE at.code = 'MONITOR';
 
 -- =============================================
--- 7. ASSET LOCATIONS
+-- 7. ASSET STATUS HISTORY
 -- =============================================
 
--- CSC IT Office
-INSERT INTO asset_locations (asset_id, office_id, is_current, assigned_at) VALUES
-((SELECT id FROM assets WHERE asset_code = 'CSC-LAP-001'), (SELECT id FROM offices WHERE name = 'IT_OFFICE' AND campus_id = 1), TRUE, '2024-03-15 10:00:00'),
-((SELECT id FROM assets WHERE asset_code = 'CSC-LAP-003'), (SELECT id FROM offices WHERE name = 'IT_OFFICE' AND campus_id = 1), TRUE, '2024-03-15 10:00:00'),
-((SELECT id FROM assets WHERE asset_code = 'CSC-LAP-004'), (SELECT id FROM offices WHERE name = 'IT_OFFICE' AND campus_id = 1), TRUE, '2024-03-15 10:00:00'),
-((SELECT id FROM assets WHERE asset_code = 'CSC-LAP-006'), (SELECT id FROM offices WHERE name = 'IT_OFFICE' AND campus_id = 1), TRUE, '2024-03-15 10:00:00'),
-((SELECT id FROM assets WHERE asset_code = 'CSC-LAP-007'), (SELECT id FROM offices WHERE name = 'IT_OFFICE' AND campus_id = 1), TRUE, '2025-01-10 08:00:00'),
-((SELECT id FROM assets WHERE asset_code = 'CSC-DSK-001'), (SELECT id FROM offices WHERE name = 'IT_OFFICE' AND campus_id = 1), TRUE, '2024-03-15 10:00:00'),
-((SELECT id FROM assets WHERE asset_code = 'CSC-PRT-002'), (SELECT id FROM offices WHERE name = 'IT_OFFICE' AND campus_id = 1), TRUE, '2024-05-05 09:00:00');
-
--- CSC Admin Office
-INSERT INTO asset_locations (asset_id, office_id, is_current, assigned_at) VALUES
-((SELECT id FROM assets WHERE asset_code = 'CSC-LAP-002'), (SELECT id FROM offices WHERE name = 'ADMIN_OFFICE' AND campus_id = 1), TRUE, '2024-03-15 10:00:00'),
-((SELECT id FROM assets WHERE asset_code = 'CSC-DSK-002'), (SELECT id FROM offices WHERE name = 'ADMIN_OFFICE' AND campus_id = 1), TRUE, '2024-03-15 10:00:00'),
-((SELECT id FROM assets WHERE asset_code = 'CSC-MON-002'), (SELECT id FROM offices WHERE name = 'STORES' AND campus_id = 1), TRUE, '2024-03-15 10:00:00');
-
--- CSC Finance Department
-INSERT INTO asset_locations (asset_id, office_id, is_current, assigned_at) VALUES
-((SELECT id FROM assets WHERE asset_code = 'CSC-PRT-001'), (SELECT id FROM offices WHERE name = 'FINANCE_DEPT' AND campus_id = 1), TRUE, '2024-05-05 09:00:00');
-
--- CSC Lecture Hall A
-INSERT INTO asset_locations (asset_id, office_id, is_current, assigned_at) VALUES
-((SELECT id FROM assets WHERE asset_code = 'CSC-PRJ-001'), (SELECT id FROM offices WHERE name = 'LECTURE_HALL_A' AND campus_id = 1), TRUE, '2024-03-15 10:00:00');
-
--- CSC Computer Lab 1
-INSERT INTO asset_locations (asset_id, office_id, is_current, assigned_at) VALUES
-((SELECT id FROM assets WHERE asset_code = 'CSC-SWT-002'), (SELECT id FROM offices WHERE name = 'COMP_LAB_1' AND campus_id = 1), TRUE, '2024-09-12 10:00:00');
-
--- CSC Server Room (using Stores as proxy — add SERVER_ROOM if needed)
-INSERT INTO asset_locations (asset_id, office_id, is_current, assigned_at) VALUES
-((SELECT id FROM assets WHERE asset_code = 'CSC-SWT-001'), (SELECT id FROM offices WHERE name = 'STORES' AND campus_id = 1), TRUE, '2024-09-12 10:00:00'),
-((SELECT id FROM assets WHERE asset_code = 'CSC-RTR-001'), (SELECT id FROM offices WHERE name = 'STORES' AND campus_id = 1), TRUE, '2024-09-12 10:00:00');
-
--- MAR Campus
-INSERT INTO asset_locations (asset_id, office_id, is_current, assigned_at) VALUES
-((SELECT id FROM assets WHERE asset_code = 'MAR-LAP-001'), (SELECT id FROM offices WHERE name = 'IT_OFFICE' AND campus_id = 2), TRUE, '2024-06-20 09:00:00'),
-((SELECT id FROM assets WHERE asset_code = 'MAR-LAP-002'), (SELECT id FROM offices WHERE name = 'IT_OFFICE' AND campus_id = 2), TRUE, '2024-06-20 09:00:00'),
-((SELECT id FROM assets WHERE asset_code = 'MAR-PRJ-001'), (SELECT id FROM offices WHERE name = 'LIBRARY' AND campus_id = 2), TRUE, '2024-06-20 09:00:00'),
-((SELECT id FROM assets WHERE asset_code = 'MAR-PRT-001'), (SELECT id FROM offices WHERE name = 'ADMIN_OFFICE' AND campus_id = 2), TRUE, '2024-06-20 09:00:00'),
-((SELECT id FROM assets WHERE asset_code = 'MAR-DSK-001'), (SELECT id FROM offices WHERE name = 'ADMIN_OFFICE' AND campus_id = 2), TRUE, '2024-06-20 09:00:00'),
-((SELECT id FROM assets WHERE asset_code = 'MAR-MON-001'), (SELECT id FROM offices WHERE name = 'LIBRARY' AND campus_id = 2), TRUE, '2024-06-20 09:00:00');
-
--- AIP Campus
-INSERT INTO asset_locations (asset_id, office_id, is_current, assigned_at) VALUES
-((SELECT id FROM assets WHERE asset_code = 'AIP-LAP-001'), (SELECT id FROM offices WHERE name = 'ADMIN_OFFICE' AND campus_id = 3), TRUE, '2024-09-10 08:00:00'),
-((SELECT id FROM assets WHERE asset_code = 'AIP-PRJ-001'), (SELECT id FROM offices WHERE name = 'IT_OFFICE' AND campus_id = 3), TRUE, '2024-09-10 08:00:00'),
-((SELECT id FROM assets WHERE asset_code = 'AIP-DSK-001'), (SELECT id FROM offices WHERE name = 'IT_OFFICE' AND campus_id = 3), TRUE, '2024-09-10 08:00:00');
-
--- Lost/stolen assets — last known location
-INSERT INTO asset_locations (asset_id, office_id, is_current, assigned_at) VALUES
-((SELECT id FROM assets WHERE asset_code = 'CSC-LAP-005'), (SELECT id FROM offices WHERE name = 'IT_OFFICE' AND campus_id = 1), TRUE, '2024-03-15 10:00:00');
-
--- In repair — assigned to IT Office temporarily
-INSERT INTO asset_locations (asset_id, office_id, is_current, assigned_at) VALUES
-((SELECT id FROM assets WHERE asset_code = 'CSC-PRJ-003'), (SELECT id FROM offices WHERE name = 'IT_OFFICE' AND campus_id = 1), TRUE, '2024-03-15 10:00:00');
-
--- On loan projector — last known at Lecture Hall
-INSERT INTO asset_locations (asset_id, office_id, is_current, assigned_at) VALUES
-((SELECT id FROM assets WHERE asset_code = 'CSC-PRJ-002'), (SELECT id FROM offices WHERE name = 'LECTURE_HALL_A' AND campus_id = 1), TRUE, '2024-03-15 10:00:00');
+-- Initial status for all assets
+INSERT INTO asset_status_history (asset_id, status, reason, valid_from, valid_to)
+SELECT a.id, a.current_status, 'Asset registered', '2024-03-15 10:00:00', '9000-01-01 00:00:00'
+FROM assets a;
 
 -- =============================================
--- 8. ASSET ASSIGNMENTS
+-- 8. ASSET LOCATION HISTORY (current locations)
 -- =============================================
 
--- IT Manager has CSC-LAP-001 and CSC-DSK-001
-INSERT INTO asset_assignments (asset_id, user_id, role_at_assignment, is_current, assigned_at, notes) VALUES
-((SELECT id FROM assets WHERE asset_code = 'CSC-LAP-001'), (SELECT id FROM users WHERE username = 'it.mary'), 'IT Manager', TRUE, '2024-03-20 08:00:00', 'Primary work laptop'),
-((SELECT id FROM assets WHERE asset_code = 'CSC-DSK-001'), (SELECT id FROM users WHERE username = 'it.mary'), 'IT Manager', TRUE, '2024-03-20 08:00:00', 'Office workstation');
+INSERT INTO asset_location_history (asset_id, office_id, valid_from, valid_to)
+SELECT a.id, o.id, '2024-03-15 10:00:00', '9000-01-01 00:00:00'
+FROM assets a, offices o
+WHERE a.code = 'CSC-LAP-001' AND o.code = 'CSC_IT_DEPT'
+UNION ALL SELECT a.id, o.id, '2024-03-15 10:00:00', '9000-01-01 00:00:00' FROM assets a, offices o WHERE a.code = 'CSC-LAP-003' AND o.code = 'CSC_IT_DEPT'
+UNION ALL SELECT a.id, o.id, '2024-03-15 10:00:00', '9000-01-01 00:00:00' FROM assets a, offices o WHERE a.code = 'CSC-LAP-004' AND o.code = 'CSC_IT_DEPT'
+UNION ALL SELECT a.id, o.id, '2024-03-15 10:00:00', '9000-01-01 00:00:00' FROM assets a, offices o WHERE a.code = 'CSC-LAP-006' AND o.code = 'CSC_IT_DEPT'
+UNION ALL SELECT a.id, o.id, '2025-01-10 08:00:00', '9000-01-01 00:00:00' FROM assets a, offices o WHERE a.code = 'CSC-LAP-007' AND o.code = 'CSC_IT_DEPT'
+UNION ALL SELECT a.id, o.id, '2024-03-15 10:00:00', '9000-01-01 00:00:00' FROM assets a, offices o WHERE a.code = 'CSC-DSK-001' AND o.code = 'CSC_IT_DEPT'
+UNION ALL SELECT a.id, o.id, '2024-05-05 09:00:00', '9000-01-01 00:00:00' FROM assets a, offices o WHERE a.code = 'CSC-PRT-002' AND o.code = 'CSC_IT_DEPT'
+UNION ALL SELECT a.id, o.id, '2024-03-15 10:00:00', '9000-01-01 00:00:00' FROM assets a, offices o WHERE a.code = 'CSC-LAP-002' AND o.code = 'CSC_REGISTRAR'
+UNION ALL SELECT a.id, o.id, '2024-03-15 10:00:00', '9000-01-01 00:00:00' FROM assets a, offices o WHERE a.code = 'CSC-DSK-002' AND o.code = 'CSC_REGISTRAR'
+UNION ALL SELECT a.id, o.id, '2024-03-15 10:00:00', '9000-01-01 00:00:00' FROM assets a, offices o WHERE a.code = 'CSC-MON-002' AND o.code = 'CSC_IT_STORES'
+UNION ALL SELECT a.id, o.id, '2024-05-05 09:00:00', '9000-01-01 00:00:00' FROM assets a, offices o WHERE a.code = 'CSC-PRT-001' AND o.code = 'CSC_FINANCE'
+UNION ALL SELECT a.id, o.id, '2024-03-15 10:00:00', '9000-01-01 00:00:00' FROM assets a, offices o WHERE a.code = 'CSC-PRJ-001' AND o.code = 'CSC_LECTURE_HALL_1'
+UNION ALL SELECT a.id, o.id, '2024-09-12 10:00:00', '9000-01-01 00:00:00' FROM assets a, offices o WHERE a.code = 'CSC-SWT-002' AND o.code = 'CSC_COMP_LAB_A'
+UNION ALL SELECT a.id, o.id, '2024-09-12 10:00:00', '9000-01-01 00:00:00' FROM assets a, offices o WHERE a.code = 'CSC-SWT-001' AND o.code = 'CSC_SERVER_ROOM'
+UNION ALL SELECT a.id, o.id, '2024-09-12 10:00:00', '9000-01-01 00:00:00' FROM assets a, offices o WHERE a.code = 'CSC-RTR-001' AND o.code = 'CSC_SERVER_ROOM'
+UNION ALL SELECT a.id, o.id, '2024-06-20 09:00:00', '9000-01-01 00:00:00' FROM assets a, offices o WHERE a.code = 'MAR-LAP-001' AND o.code = 'MAR_IT_DEPT'
+UNION ALL SELECT a.id, o.id, '2024-06-20 09:00:00', '9000-01-01 00:00:00' FROM assets a, offices o WHERE a.code = 'MAR-LAP-002' AND o.code = 'MAR_IT_DEPT'
+UNION ALL SELECT a.id, o.id, '2024-06-20 09:00:00', '9000-01-01 00:00:00' FROM assets a, offices o WHERE a.code = 'MAR-PRJ-001' AND o.code = 'MAR_LIBRARY'
+UNION ALL SELECT a.id, o.id, '2024-06-20 09:00:00', '9000-01-01 00:00:00' FROM assets a, offices o WHERE a.code = 'MAR-PRT-001' AND o.code = 'MAR_CAMPUS_DIRECTOR'
+UNION ALL SELECT a.id, o.id, '2024-06-20 09:00:00', '9000-01-01 00:00:00' FROM assets a, offices o WHERE a.code = 'MAR-DSK-001' AND o.code = 'MAR_CAMPUS_DIRECTOR'
+UNION ALL SELECT a.id, o.id, '2024-06-20 09:00:00', '9000-01-01 00:00:00' FROM assets a, offices o WHERE a.code = 'MAR-MON-001' AND o.code = 'MAR_LIBRARY'
+UNION ALL SELECT a.id, o.id, '2024-09-10 08:00:00', '9000-01-01 00:00:00' FROM assets a, offices o WHERE a.code = 'AIP-LAP-001' AND o.code = 'AIP_IT_DEPT'
+UNION ALL SELECT a.id, o.id, '2024-09-10 08:00:00', '9000-01-01 00:00:00' FROM assets a, offices o WHERE a.code = 'AIP-PRJ-001' AND o.code = 'AIP_IT_DEPT'
+UNION ALL SELECT a.id, o.id, '2024-09-10 08:00:00', '9000-01-01 00:00:00' FROM assets a, offices o WHERE a.code = 'AIP-DSK-001' AND o.code = 'AIP_IT_DEPT'
+UNION ALL SELECT a.id, o.id, '2024-03-15 10:00:00', '9000-01-01 00:00:00' FROM assets a, offices o WHERE a.code = 'CSC-LAP-005' AND o.code = 'CSC_IT_DEPT'
+UNION ALL SELECT a.id, o.id, '2024-03-15 10:00:00', '9000-01-01 00:00:00' FROM assets a, offices o WHERE a.code = 'CSC-PRJ-003' AND o.code = 'CSC_IT_DEPT'
+UNION ALL SELECT a.id, o.id, '2024-03-15 10:00:00', '9000-01-01 00:00:00' FROM assets a, offices o WHERE a.code = 'CSC-PRJ-002' AND o.code = 'CSC_LECTURE_HALL_1';
 
--- Admin Officer has CSC-LAP-002
-INSERT INTO asset_assignments (asset_id, user_id, role_at_assignment, is_current, assigned_at, notes) VALUES
-((SELECT id FROM assets WHERE asset_code = 'CSC-LAP-002'), (SELECT id FROM users WHERE username = 'admin.jane'), 'Administrator', TRUE, '2024-04-01 09:00:00', 'Admin department laptop');
+-- =============================================
+-- 9. ASSET ASSIGNMENT HISTORY (current assignments)
+-- =============================================
 
--- IT Staff have other laptops
-INSERT INTO asset_assignments (asset_id, user_id, role_at_assignment, is_current, assigned_at, notes) VALUES
-((SELECT id FROM assets WHERE asset_code = 'MAR-LAP-001'), (SELECT id FROM users WHERE username = 'it.peter'), 'IT Support', TRUE, '2024-07-01 08:00:00', 'Marondera campus support'),
-((SELECT id FROM assets WHERE asset_code = 'AIP-LAP-001'), (SELECT id FROM users WHERE username = 'it.sarah'), 'IT Support', TRUE, '2024-09-15 08:00:00', 'AIP campus support');
+INSERT INTO asset_assignment_history (asset_id, user_id, role_at_assignment, notes, valid_from, valid_to)
+SELECT a.id, u.id, 'IT Manager', 'Primary work laptop', '2024-03-20 08:00:00', '9000-01-01 00:00:00'
+FROM assets a, users u WHERE a.code = 'CSC-LAP-001' AND u.username = 'it.mary'
+UNION ALL
+SELECT a.id, u.id, 'IT Manager', 'Office workstation', '2024-03-20 08:00:00', '9000-01-01 00:00:00'
+FROM assets a, users u WHERE a.code = 'CSC-DSK-001' AND u.username = 'it.mary'
+UNION ALL
+SELECT a.id, u.id, 'Administrator', 'Admin department laptop', '2024-04-01 09:00:00', '9000-01-01 00:00:00'
+FROM assets a, users u WHERE a.code = 'CSC-LAP-002' AND u.username = 'admin.jane'
+UNION ALL
+SELECT a.id, u.id, 'IT Support', 'Marondera campus support', '2024-07-01 08:00:00', '9000-01-01 00:00:00'
+FROM assets a, users u WHERE a.code = 'MAR-LAP-001' AND u.username = 'it.peter'
+UNION ALL
+SELECT a.id, u.id, 'IT Support', 'AIP campus support', '2024-09-15 08:00:00', '9000-01-01 00:00:00'
+FROM assets a, users u WHERE a.code = 'AIP-LAP-001' AND u.username = 'it.sarah'
+UNION ALL
+SELECT a.id, u.id, 'Senior Admin', 'Admin workstation', '2024-04-01 09:00:00', '9000-01-01 00:00:00'
+FROM assets a, users u WHERE a.code = 'CSC-DSK-002' AND u.username = 'admin.john'
+UNION ALL
+SELECT a.id, u.id, 'Campus Admin', 'Marondera admin workstation', '2024-07-01 08:00:00', '9000-01-01 00:00:00'
+FROM assets a, users u WHERE a.code = 'MAR-DSK-001' AND u.username = 'viewer.david'
+UNION ALL
+SELECT a.id, u.id, 'Innovation Lead', 'AIP innovation hub', '2024-09-15 08:00:00', '9000-01-01 00:00:00'
+FROM assets a, users u WHERE a.code = 'AIP-DSK-001' AND u.username = 'viewer.linda';
 
--- Desktop assignments
-INSERT INTO asset_assignments (asset_id, user_id, role_at_assignment, is_current, assigned_at, notes) VALUES
-((SELECT id FROM assets WHERE asset_code = 'CSC-DSK-002'), (SELECT id FROM users WHERE username = 'admin.john'), 'Senior Admin', TRUE, '2024-04-01 09:00:00', 'Admin workstation'),
-((SELECT id FROM assets WHERE asset_code = 'MAR-DSK-001'), (SELECT id FROM users WHERE username = 'viewer.david'), 'Campus Admin', TRUE, '2024-07-01 08:00:00', 'Marondera admin workstation'),
-((SELECT id FROM assets WHERE asset_code = 'AIP-DSK-001'), (SELECT id FROM users WHERE username = 'viewer.linda'), 'Innovation Lead', TRUE, '2024-09-15 08:00:00', 'AIP innovation hub');
+-- =============================================
+-- 10. HISTORICAL ASSIGNMENT (CSC-LAP-004 returned for repair)
+-- =============================================
 
--- Historical assignment — CSC-LAP-004 was previously assigned before repair
-INSERT INTO asset_assignments (asset_id, user_id, role_at_assignment, is_current, assigned_at, returned_at, notes) VALUES
-((SELECT id FROM assets WHERE asset_code = 'CSC-LAP-004'), (SELECT id FROM users WHERE username = 'user.tendai'), 'Lecturer', FALSE, '2024-06-01 08:00:00', '2025-01-15 17:00:00', 'Returned for screen repair');
+INSERT INTO asset_assignment_history (asset_id, user_id, role_at_assignment, notes, valid_from, valid_to)
+SELECT a.id, u.id, 'Lecturer', 'Returned for screen repair', '2024-06-01 08:00:00', '2025-01-15 17:00:00'
+FROM assets a, users u WHERE a.code = 'CSC-LAP-004' AND u.username = 'user.tendai';
 
 -- =============================================
 -- SUMMARY
@@ -186,6 +246,7 @@ INSERT INTO asset_assignments (asset_id, user_id, role_at_assignment, is_current
 └──────────────┴───────┴──────────────────────────────────────────┘
 
 Locations: CSC (19), MAR (6), AIP (3)
-Assignments: 9 current, 1 historical
+Assignments: 8 current, 1 historical
+History tables populated: status (28), location (28), assignment (9)
 GRV Link: All NULL (legacy assets)
 */

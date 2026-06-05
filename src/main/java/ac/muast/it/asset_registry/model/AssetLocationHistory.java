@@ -29,6 +29,9 @@ public class AssetLocationHistory {
     @EqualsAndHashCode.Exclude
     private Office office;
 
+    @Column(name = "notes", nullable = true)
+    private String notes;
+
     @Column(name = "valid_from", nullable = false)
     private LocalDateTime validFrom;
 

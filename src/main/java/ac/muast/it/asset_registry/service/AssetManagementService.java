@@ -2,6 +2,9 @@
 package ac.muast.it.asset_registry.service;
 
 import ac.muast.it.asset_registry.dto.request.AssignAssetRequest;
+import ac.muast.it.asset_registry.dto.request.CheckinAssetRequest;
+import ac.muast.it.asset_registry.dto.request.MarkForRepairRequest;
+import ac.muast.it.asset_registry.dto.request.RecoverAssetRequest;
 import ac.muast.it.asset_registry.dto.request.TransferAssetRequest;
 import ac.muast.it.asset_registry.dto.response.AssetResponse;
 import ac.muast.it.asset_registry.exception.ResourceNotFoundException;
@@ -90,6 +93,7 @@ public class AssetManagementService {
         AssetLocationHistory location = AssetLocationHistory.builder()
             .asset(asset)
             .office(office)
+            .notes(request.getNotes() != null ? request.getNotes() : "Transferred to " + office.getName())
             .validFrom(now)
             .validTo(AssetHistory.MAX_VALID_TO)
             .build();
@@ -100,9 +104,12 @@ public class AssetManagementService {
     }
 
     @Transactional
-    public AssetResponse checkinAsset(Long id) {
-        Asset asset = assetRepository.findById(id)
-            .orElseThrow(() -> new ResourceNotFoundException("Asset not found: " + id));
+    public AssetResponse checkinAsset(Long asset_id, CheckinAssetRequest request) {
+        Asset asset = assetRepository.findById(asset_id)
+            .orElseThrow(() -> new ResourceNotFoundException("Asset not found: " + asset_id));
+
+        Office returnOffice = officeRepository.findById(request.getReturnOfficeId())
+            .orElseThrow(() -> new ResourceNotFoundException("Office not found: " + request.getReturnOfficeId()));
 
         validateAction(asset, AssetStatus.Action.CHECKIN);
 
@@ -115,16 +122,38 @@ public class AssetManagementService {
                 assignmentHistoryRepository.save(current);
             });
 
+        // Close current location
+        locationHistoryRepository.findCurrentByAssetId(asset.getId(), AssetHistory.MAX_VALID_TO)
+            .ifPresent(current -> {
+                current.setValidTo(now);
+                locationHistoryRepository.save(current);
+            });
+
+        // Create new location
+        AssetLocationHistory location = AssetLocationHistory.builder()
+            .asset(asset)
+            .office(returnOffice)
+            .notes("Transferred to " + returnOffice.getName())
+            .validFrom(now)
+            .validTo(AssetHistory.MAX_VALID_TO)
+            .build();
+        locationHistoryRepository.save(location);
+
         // Update status
         closeCurrentStatus(asset, now);
-        createStatusHistory(asset, AssetStatus.AVAILABLE, "Checked in", now);
+        createStatusHistory(
+            asset, 
+            AssetStatus.AVAILABLE, 
+            request.getNotes() != null ? request.getNotes() : "Checked in", 
+            now
+        );
         asset.setCurrentStatus(AssetStatus.AVAILABLE);
 
         return assetService.mapToResponse(assetRepository.save(asset));
     }
 
     @Transactional
-    public AssetResponse sendForRepair(Long id) {
+    public AssetResponse markForRepair(Long id, MarkForRepairRequest request) {
         Asset asset = assetRepository.findById(id)
             .orElseThrow(() -> new ResourceNotFoundException("Asset not found: " + id));
 
@@ -133,7 +162,12 @@ public class AssetManagementService {
         LocalDateTime now = LocalDateTime.now();
 
         closeCurrentStatus(asset, now);
-        createStatusHistory(asset, AssetStatus.IN_REPAIR, "Sent for repair", now);
+        createStatusHistory(
+            asset, 
+            AssetStatus.IN_REPAIR, 
+            request.getNotes() != null ? request.getNotes() : "Asset " + id + "marked for repair", 
+            now
+        );
         asset.setCurrentStatus(AssetStatus.IN_REPAIR);
 
         return assetService.mapToResponse(assetRepository.save(asset));
@@ -154,6 +188,13 @@ public class AssetManagementService {
                 current.setValidTo(now);
                 current.setNotes(notes);
                 assignmentHistoryRepository.save(current);
+            });
+
+        // Close current location
+        locationHistoryRepository.findCurrentByAssetId(asset.getId(), AssetHistory.MAX_VALID_TO)
+            .ifPresent(current -> {
+                current.setValidTo(now);
+                locationHistoryRepository.save(current);
             });
 
         // Update status
@@ -198,7 +239,7 @@ public class AssetManagementService {
     }
 
     @Transactional
-    public AssetResponse recoverAsset(Long id, AssetStatus targetStatus) {
+    public AssetResponse recoverAsset(Long id, AssetStatus targetStatus, RecoverAssetRequest request) {
         Asset asset = assetRepository.findById(id)
             .orElseThrow(() -> new ResourceNotFoundException("Asset not found: " + id));
 
@@ -212,7 +253,7 @@ public class AssetManagementService {
         closeCurrentStatus(asset, now);
         createStatusHistory(asset, targetStatus, "Recovered from " + current, now);
         asset.setCurrentStatus(targetStatus);
-        asset.setNotes(asset.getNotes() + " | Recovered from " + current + " on " + now);
+        asset.setNotes((asset.getNotes() != null ? asset.getNotes() + " | " : "") + "Recovered from " + current + " on " + now);
 
         return assetService.mapToResponse(assetRepository.save(asset));
     }

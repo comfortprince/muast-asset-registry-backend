@@ -2,7 +2,10 @@
 package ac.muast.it.asset_registry.controller;
 
 import ac.muast.it.asset_registry.dto.request.AssignAssetRequest;
+import ac.muast.it.asset_registry.dto.request.CheckinAssetRequest;
 import ac.muast.it.asset_registry.dto.request.CreateAssetRequest;
+import ac.muast.it.asset_registry.dto.request.MarkForRepairRequest;
+import ac.muast.it.asset_registry.dto.request.RecoverAssetRequest;
 import ac.muast.it.asset_registry.dto.request.StatusUpdateRequest;
 import ac.muast.it.asset_registry.dto.request.TransferAssetRequest;
 import ac.muast.it.asset_registry.dto.response.AssetResponse;
@@ -46,10 +49,17 @@ public class AssetController {
     @PreAuthorize("hasAuthority('READ_ASSETS')")
     public ResponseEntity<Page<AssetResponse>> getAllAssets(
         @RequestParam(defaultValue = "0") @Min(0) int page,
-        @RequestParam(defaultValue = "20") @Min(1) int size
+        @RequestParam(defaultValue = "20") @Min(1) int size,
+        @RequestParam(required = false) AssetStatus status,
+        @RequestParam(required = false) Long asset_type_id,
+        @RequestParam(required = false) String brand,
+        @RequestParam(required = false, name = "serial_number") String serial_number,
+        @RequestParam(required = false, name = "asset_code") String asset_code
     ) {
         Pageable pageable = PageRequest.of(page, size);
-        return ResponseEntity.ok(assetService.getAllAssets(pageable));
+        return ResponseEntity.ok(
+            assetService.getAllAssets(pageable, status, asset_type_id, brand, serial_number, asset_code)
+        );
     }
 
     @GetMapping("/{id}")
@@ -92,62 +102,69 @@ public class AssetController {
     // ASSET OPERATIONS
     // =============================================
 
-    @PostMapping("/{id}/assign")
+    @PostMapping("/{asset_id}/assign")
     @PreAuthorize("hasAuthority('MANAGE_ASSETS')")
     public ResponseEntity<AssetResponse> assignAsset(
-        @PathVariable Long id,
+        @PathVariable Long asset_id,
         @Valid @RequestBody AssignAssetRequest request
     ) {
-        return ResponseEntity.ok(assetManagementService.assignAsset(id, request));
+        return ResponseEntity.ok(assetManagementService.assignAsset(asset_id, request));
     }
 
-    @PostMapping("/{id}/transfer")
+    @PostMapping("/{asset_id}/transfer")
     @PreAuthorize("hasAuthority('MANAGE_ASSETS')")
     public ResponseEntity<AssetResponse> transferAsset(
-        @PathVariable Long id,
+        @PathVariable Long asset_id,
         @Valid @RequestBody TransferAssetRequest request
     ) {
-        return ResponseEntity.ok(assetManagementService.transferAsset(id, request));
+        return ResponseEntity.ok(assetManagementService.transferAsset(asset_id, request));
     }
 
-    @PostMapping("/{id}/checkin")
+    @PostMapping("/{asset_id}/checkin")
     @PreAuthorize("hasAuthority('MANAGE_ASSETS')")
-    public ResponseEntity<AssetResponse> checkinAsset(@PathVariable Long id) {
-        return ResponseEntity.ok(assetManagementService.checkinAsset(id));
+    public ResponseEntity<AssetResponse> checkinAsset(
+        @PathVariable Long asset_id,
+        @Valid @RequestBody CheckinAssetRequest request
+    ) {
+        return ResponseEntity.ok(assetManagementService.checkinAsset(asset_id, request));
     }
 
-    @PostMapping("/{id}/repair")
+    @PostMapping("/{asset_id}/repair")
     @PreAuthorize("hasAuthority('MANAGE_ASSETS')")
-    public ResponseEntity<AssetResponse> sendForRepair(@PathVariable Long id) {
-        return ResponseEntity.ok(assetManagementService.sendForRepair(id));
+    public ResponseEntity<AssetResponse> markForRepair(
+        @PathVariable Long asset_id,
+        @Valid @RequestBody MarkForRepairRequest request
+    ) {
+        return ResponseEntity.ok(assetManagementService.markForRepair(asset_id, request));
     }
 
-    @PostMapping("/{id}/lost")
+    @PostMapping("/{asset_id}/lost")
     @PreAuthorize("hasAuthority('MANAGE_ASSETS')")
     public ResponseEntity<AssetResponse> markAsLost(
-        @PathVariable Long id,
+        @PathVariable Long asset_id,
         @RequestBody(required = false) StatusUpdateRequest request
     ) {
         String notes = request != null ? request.getNotes() : null;
-        return ResponseEntity.ok(assetManagementService.markAsLost(id, notes));
+        return ResponseEntity.ok(assetManagementService.markAsLost(asset_id, notes));
     }
 
-    @PostMapping("/{id}/decommission")
+    @PostMapping("/{asset_id}/decommission")
     @PreAuthorize("hasAuthority('MANAGE_ASSETS')")
     public ResponseEntity<AssetResponse> decommissionAsset(
-        @PathVariable Long id,
+        @PathVariable Long asset_id,
         @RequestBody(required = false) StatusUpdateRequest request
     ) {
         String notes = request != null ? request.getNotes() : null;
-        return ResponseEntity.ok(assetManagementService.decommissionAsset(id, notes));
+        return ResponseEntity.ok(assetManagementService.decommissionAsset(asset_id, notes));
     }
 
-    @PostMapping("/{id}/recover")
+    @PostMapping("/{asset_id}/recover")
     @PreAuthorize("hasAuthority('MANAGE_ASSETS')")
     public ResponseEntity<AssetResponse> recoverAsset(
-        @PathVariable Long id,
-        @RequestParam AssetStatus targetStatus
+        @PathVariable Long asset_id,
+        @RequestParam AssetStatus targetStatus,
+        @Valid @RequestBody RecoverAssetRequest request
     ) {
-        return ResponseEntity.ok(assetManagementService.recoverAsset(id, targetStatus));
+        return ResponseEntity.ok(assetManagementService.recoverAsset(asset_id, targetStatus, request));
     }
 }

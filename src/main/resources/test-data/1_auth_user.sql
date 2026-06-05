@@ -3,7 +3,8 @@
 -- =============================================
 -- Description: Test data for users, roles, and permissions
 -- Order: Run this FIRST
--- Tables: roles, permissions, users, user_roles, role_permissions
+-- Tables: roles, users, user_roles, role_permissions
+-- Note: Permissions are hardcoded enums, not stored in a table
 -- 
 -- Password hash: $2a$12$yFk88RqKP/XfsDgf32MG6OU.qubhhYwiAXSwqRML5DEEvAI7owLBS
 -- Plain text password: "password123"
@@ -22,304 +23,150 @@ INSERT INTO roles (id, name, description) VALUES
 ALTER TABLE roles AUTO_INCREMENT = 5;
 
 -- =============================================
--- 2. PERMISSIONS
+-- 2. ROLE-PERMISSION ASSIGNMENTS
 -- =============================================
 
-INSERT INTO permissions (name, display_name, description, module) VALUES
--- User Management
-('MANAGE_USERS', 'Manage Users', 'Ability to create, update, disable, and assign roles to users', 'USER_MANAGEMENT'),
-('READ_USERS', 'Read Users', 'Ability to view user information', 'USER_MANAGEMENT'),
+-- 2.1 ADMIN (Role ID 4)
+INSERT INTO role_permissions (role_id, permission_name) VALUES
+(4, 'MANAGE_USERS'),
+(4, 'READ_USERS'),
+(4, 'MANAGE_ROLES'),
+(4, 'READ_ROLES'),
+(4, 'MANAGE_ASSETS'),
+(4, 'READ_ASSETS'),
+(4, 'MANAGE_LOCATIONS'),
+(4, 'READ_LOCATIONS'),
+(4, 'MANAGE_ASSET_CATALOG'),
+(4, 'READ_ASSET_CATALOG'),
+(4, 'VIEW_REPORTS'),
+(4, 'EXPORT_REPORTS'),
+(4, 'VIEW_AUDIT_LOGS');
 
--- Role Management
-('MANAGE_ROLES', 'Manage Roles', 'Ability to create, update, delete roles and assign permissions', 'ROLE_MANAGEMENT'),
-('READ_ROLES', 'Read Roles', 'Ability to view roles and their permissions', 'ROLE_MANAGEMENT'),
+-- 2.2 IT_STAFF (Role ID 2)
+INSERT INTO role_permissions (role_id, permission_name) VALUES
+(2, 'READ_USERS'),
+(2, 'MANAGE_ASSETS'),
+(2, 'READ_ASSETS'),
+(2, 'READ_LOCATIONS'),
+(2, 'READ_ASSET_CATALOG'),
+(2, 'VIEW_REPORTS'),
+(2, 'EXPORT_REPORTS');
 
--- Asset Management
-('MANAGE_ASSETS', 'Manage Assets', 'Ability to create, update, dispose, assign, check-in, and transfer assets', 'ASSET_MANAGEMENT'),
-('READ_ASSETS', 'Read Assets', 'Ability to view assets', 'ASSET_MANAGEMENT'),
+-- 2.3 VIEWER (Role ID 3)
+INSERT INTO role_permissions (role_id, permission_name) VALUES
+(3, 'READ_USERS'),
+(3, 'READ_ASSETS'),
+(3, 'READ_LOCATIONS'),
+(3, 'READ_ASSET_CATALOG'),
+(3, 'VIEW_REPORTS');
 
--- Location Management
-('MANAGE_LOCATIONS', 'Manage Locations', 'Ability to create, update, and delete campuses and offices', 'LOCATION_MANAGEMENT'),
-('READ_LOCATIONS', 'Read Locations', 'Ability to view campuses and offices', 'LOCATION_MANAGEMENT'),
-
--- Catalog Management
-('MANAGE_ASSET_CATALOG', 'Manage Asset Catalog', 'Ability to create, update, and delete categories and asset types', 'CATALOG_MANAGEMENT'),
-('READ_ASSET_CATALOG', 'Read Asset Catalog', 'Ability to view categories and asset types', 'CATALOG_MANAGEMENT'),
-
--- Reports
-('VIEW_REPORTS', 'View Reports', 'Ability to view system reports', 'REPORTS'),
-('EXPORT_REPORTS', 'Export Reports', 'Ability to export reports', 'REPORTS'),
-
--- System
-('VIEW_AUDIT_LOGS', 'View Audit Logs', 'Ability to view audit logs', 'SYSTEM');
-
--- =============================================
--- 3. ROLE-PERMISSION ASSIGNMENTS
--- =============================================
-
--- 3.1 ADMIN (Role ID 4) - Full system access (ALL permissions)
-INSERT INTO role_permissions (role_id, permission_id)
-SELECT 4, p.id 
-FROM permissions p;
-
--- 3.2 IT_STAFF (Role ID 2) - Asset management permissions
-INSERT INTO role_permissions (role_id, permission_id)
-SELECT 2, p.id 
-FROM permissions p 
-WHERE p.name IN (
-    'READ_USERS',
-    'MANAGE_ASSETS', 'READ_ASSETS',
-    'READ_LOCATIONS',
-    'READ_ASSET_CATALOG',
-    'VIEW_REPORTS', 'EXPORT_REPORTS'
-);
-
--- 3.3 VIEWER (Role ID 3) - Read-only access
-INSERT INTO role_permissions (role_id, permission_id)
-SELECT 3, p.id 
-FROM permissions p 
-WHERE p.name IN (
-    'READ_USERS',
-    'READ_ASSETS',
-    'READ_LOCATIONS',
-    'READ_ASSET_CATALOG',
-    'VIEW_REPORTS'
-);
-
--- 3.4 USER (Role ID 1) - Basic user with no access (NO permissions)
+-- 2.4 USER (Role ID 1) — No permissions
 
 -- =============================================
--- 4. USERS
+-- 3. USERS (30 users)
 -- =============================================
 
 INSERT INTO users (
-    username, 
-    email, 
-    password, 
-    first_name, 
-    last_name, 
-    must_change_password, 
-    enabled, 
-    account_non_locked,
-    account_non_expired,
-    credentials_non_expired,
-    created_at, 
-    last_login
+    username, email, password, first_name, last_name,
+    must_change_password, enabled, account_non_locked,
+    account_non_expired, credentials_non_expired, created_at, last_login
 ) VALUES
--- ADMIN users
-(
-    'admin.john', 
-    'john.admin@muast.ac.zw', 
-    '$2a$12$yFk88RqKP/XfsDgf32MG6OU.qubhhYwiAXSwqRML5DEEvAI7owLBS', 
-    'John', 
-    'Admin', 
-    FALSE, 
-    TRUE, 
-    TRUE,
-    TRUE, 
-    TRUE, 
-    NOW(), 
-    NOW()
-),
-(
-    'admin.jane', 
-    'jane.admin@muast.ac.zw', 
-    '$2a$12$yFk88RqKP/XfsDgf32MG6OU.qubhhYwiAXSwqRML5DEEvAI7owLBS', 
-    'Jane', 
-    'Administrator', 
-    FALSE, 
-    TRUE, 
-    TRUE,
-    TRUE, 
-    TRUE,
-    NOW(), 
-    NOW()
-),
 
--- IT_STAFF users
-(
-    'it.mary', 
-    'mary.it@muast.ac.zw', 
-    '$2a$12$yFk88RqKP/XfsDgf32MG6OU.qubhhYwiAXSwqRML5DEEvAI7owLBS', 
-    'Mary', 
-    'Moyo', 
-    TRUE, 
-    TRUE, 
-    TRUE,
-    TRUE, 
-    TRUE, 
-    NOW(), 
-    NULL
-),
-(
-    'it.peter', 
-    'peter.it@muast.ac.zw', 
-    '$2a$12$yFk88RqKP/XfsDgf32MG6OU.qubhhYwiAXSwqRML5DEEvAI7owLBS', 
-    'Peter', 
-    'Ncube', 
-    TRUE, 
-    TRUE, 
-    TRUE,
-    TRUE, 
-    TRUE, 
-    NOW(), 
-    NULL
-),
-(
-    'it.sarah', 
-    'sarah.it@muast.ac.zw', 
-    '$2a$12$yFk88RqKP/XfsDgf32MG6OU.qubhhYwiAXSwqRML5DEEvAI7owLBS', 
-    'Sarah', 
-    'Dube', 
-    TRUE, 
-    TRUE, 
-    TRUE,
-    TRUE, 
-    TRUE, 
-    NOW(), 
-    NULL
-),
+-- ========================
+-- ADMIN users (3)
+-- ========================
+('admin.john',   'john.admin@muast.ac.zw',   '$2a$12$yFk88RqKP/XfsDgf32MG6OU.qubhhYwiAXSwqRML5DEEvAI7owLBS', 'John',   'Admin',         FALSE, TRUE, TRUE, TRUE, TRUE, NOW(), NOW()),
+('admin.jane',   'jane.admin@muast.ac.zw',   '$2a$12$yFk88RqKP/XfsDgf32MG6OU.qubhhYwiAXSwqRML5DEEvAI7owLBS', 'Jane',   'Administrator', FALSE, TRUE, TRUE, TRUE, TRUE, NOW(), NOW()),
+('admin.tom',    'tom.admin@muast.ac.zw',    '$2a$12$yFk88RqKP/XfsDgf32MG6OU.qubhhYwiAXSwqRML5DEEvAI7owLBS', 'Tom',    'Moyo',         FALSE, TRUE, TRUE, TRUE, TRUE, NOW(), NOW()),
 
--- VIEWER users
-(
-    'viewer.david', 
-    'david.view@muast.ac.zw', 
-    '$2a$12$yFk88RqKP/XfsDgf32MG6OU.qubhhYwiAXSwqRML5DEEvAI7owLBS', 
-    'David', 
-    'Sibanda', 
-    TRUE, 
-    TRUE, 
-    TRUE,
-    TRUE, 
-    TRUE, 
-    NOW(), 
-    NULL
-),
-(
-    'viewer.linda', 
-    'linda.view@muast.ac.zw', 
-    '$2a$12$yFk88RqKP/XfsDgf32MG6OU.qubhhYwiAXSwqRML5DEEvAI7owLBS', 
-    'Linda', 
-    'Moyo', 
-    TRUE, 
-    TRUE, 
-    TRUE,
-    TRUE, 
-    TRUE, 
-    NOW(), 
-    NULL
-),
+-- ========================
+-- IT_STAFF users (10)
+-- ========================
+('it.mary',      'mary.it@muast.ac.zw',      '$2a$12$yFk88RqKP/XfsDgf32MG6OU.qubhhYwiAXSwqRML5DEEvAI7owLBS', 'Mary',   'Moyo',         TRUE,  TRUE, TRUE, TRUE, TRUE, NOW(), NULL),
+('it.peter',     'peter.it@muast.ac.zw',     '$2a$12$yFk88RqKP/XfsDgf32MG6OU.qubhhYwiAXSwqRML5DEEvAI7owLBS', 'Peter',  'Ncube',        TRUE,  TRUE, TRUE, TRUE, TRUE, NOW(), NULL),
+('it.sarah',     'sarah.it@muast.ac.zw',     '$2a$12$yFk88RqKP/XfsDgf32MG6OU.qubhhYwiAXSwqRML5DEEvAI7owLBS', 'Sarah',  'Dube',         TRUE,  TRUE, TRUE, TRUE, TRUE, NOW(), NULL),
+('it.james',     'james.it@muast.ac.zw',     '$2a$12$yFk88RqKP/XfsDgf32MG6OU.qubhhYwiAXSwqRML5DEEvAI7owLBS', 'James',  'Chitumba',     TRUE,  TRUE, TRUE, TRUE, TRUE, NOW(), NULL),
+('it.patience',  'patience.it@muast.ac.zw',  '$2a$12$yFk88RqKP/XfsDgf32MG6OU.qubhhYwiAXSwqRML5DEEvAI7owLBS', 'Patience','Sibanda',     TRUE,  TRUE, TRUE, TRUE, TRUE, NOW(), NULL),
+('it.brian',     'brian.it@muast.ac.zw',     '$2a$12$yFk88RqKP/XfsDgf32MG6OU.qubhhYwiAXSwqRML5DEEvAI7owLBS', 'Brian',  'Makoni',       TRUE,  TRUE, TRUE, TRUE, TRUE, NOW(), NULL),
+('it.rutendo',   'rutendo.it@muast.ac.zw',   '$2a$12$yFk88RqKP/XfsDgf32MG6OU.qubhhYwiAXSwqRML5DEEvAI7owLBS', 'Rutendo','Gumbo',       TRUE,  TRUE, TRUE, TRUE, TRUE, NOW(), NULL),
+('it.tinashe',   'tinashe.it@muast.ac.zw',   '$2a$12$yFk88RqKP/XfsDgf32MG6OU.qubhhYwiAXSwqRML5DEEvAI7owLBS', 'Tinashe','Mutasa',      TRUE,  TRUE, TRUE, TRUE, TRUE, NOW(), NULL),
+('it.farai',     'farai.it@muast.ac.zw',     '$2a$12$yFk88RqKP/XfsDgf32MG6OU.qubhhYwiAXSwqRML5DEEvAI7owLBS', 'Farai',  'Zhou',         TRUE,  TRUE, TRUE, TRUE, TRUE, NOW(), NULL),
+('it.kudzai',    'kudzai.it@muast.ac.zw',    '$2a$12$yFk88RqKP/XfsDgf32MG6OU.qubhhYwiAXSwqRML5DEEvAI7owLBS', 'Kudzai', 'Chikosi',      TRUE,  TRUE, TRUE, TRUE, TRUE, NOW(), NULL),
 
--- USER (basic) users - no permissions
-(
-    'user.tendai', 
-    'tendai.user@muast.ac.zw', 
-    '$2a$12$yFk88RqKP/XfsDgf32MG6OU.qubhhYwiAXSwqRML5DEEvAI7owLBS', 
-    'Tendai', 
-    'Makoni', 
-    TRUE, 
-    TRUE, 
-    TRUE,
-    TRUE, 
-    TRUE, 
-    NOW(), 
-    NULL
-),
-(
-    'user.chipo', 
-    'chipo.user@muast.ac.zw', 
-    '$2a$12$yFk88RqKP/XfsDgf32MG6OU.qubhhYwiAXSwqRML5DEEvAI7owLBS', 
-    'Chipo', 
-    'Mutasa', 
-    TRUE, 
-    TRUE, 
-    TRUE,
-    TRUE, 
-    TRUE, 
-    NOW(), 
-    NULL
-),
-(
-    'user.tawanda', 
-    'tawanda.user@muast.ac.zw', 
-    '$2a$12$yFk88RqKP/XfsDgf32MG6OU.qubhhYwiAXSwqRML5DEEvAI7owLBS', 
-    'Tawanda', 
-    'Gumbo', 
-    TRUE, 
-    TRUE, 
-    TRUE,
-    TRUE, 
-    TRUE, 
-    NOW(), 
-    NULL
-);
+-- ========================
+-- VIEWER users (10)
+-- ========================
+('viewer.david',   'david.view@muast.ac.zw',   '$2a$12$yFk88RqKP/XfsDgf32MG6OU.qubhhYwiAXSwqRML5DEEvAI7owLBS', 'David',   'Sibanda',   TRUE, TRUE, TRUE, TRUE, TRUE, NOW(), NULL),
+('viewer.linda',   'linda.view@muast.ac.zw',   '$2a$12$yFk88RqKP/XfsDgf32MG6OU.qubhhYwiAXSwqRML5DEEvAI7owLBS', 'Linda',   'Moyo',      TRUE, TRUE, TRUE, TRUE, TRUE, NOW(), NULL),
+('viewer.charles', 'charles.view@muast.ac.zw', '$2a$12$yFk88RqKP/XfsDgf32MG6OU.qubhhYwiAXSwqRML5DEEvAI7owLBS', 'Charles', 'Ndlovu',    TRUE, TRUE, TRUE, TRUE, TRUE, NOW(), NULL),
+('viewer.grace',   'grace.view@muast.ac.zw',   '$2a$12$yFk88RqKP/XfsDgf32MG6OU.qubhhYwiAXSwqRML5DEEvAI7owLBS', 'Grace',   'Chauke',    TRUE, TRUE, TRUE, TRUE, TRUE, NOW(), NULL),
+('viewer.tapiwa',  'tapiwa.view@muast.ac.zw',  '$2a$12$yFk88RqKP/XfsDgf32MG6OU.qubhhYwiAXSwqRML5DEEvAI7owLBS', 'Tapiwa',  'Mpofu',     TRUE, TRUE, TRUE, TRUE, TRUE, NOW(), NULL),
+('viewer.nyasha',  'nyasha.view@muast.ac.zw',  '$2a$12$yFk88RqKP/XfsDgf32MG6OU.qubhhYwiAXSwqRML5DEEvAI7owLBS', 'Nyasha',  'Banda',     TRUE, TRUE, TRUE, TRUE, TRUE, NOW(), NULL),
+('viewer.fungai',  'fungai.view@muast.ac.zw',  '$2a$12$yFk88RqKP/XfsDgf32MG6OU.qubhhYwiAXSwqRML5DEEvAI7owLBS', 'Fungai',  'Dlamini',   TRUE, TRUE, TRUE, TRUE, TRUE, NOW(), NULL),
+('viewer.tsitsi',  'tsitsi.view@muast.ac.zw',  '$2a$12$yFk88RqKP/XfsDgf32MG6OU.qubhhYwiAXSwqRML5DEEvAI7owLBS', 'Tsitsi',  'Hove',      TRUE, TRUE, TRUE, TRUE, TRUE, NOW(), NULL),
+('viewer.takunda', 'takunda.view@muast.ac.zw', '$2a$12$yFk88RqKP/XfsDgf32MG6OU.qubhhYwiAXSwqRML5DEEvAI7owLBS', 'Takunda','Gonzo',     TRUE, TRUE, TRUE, TRUE, TRUE, NOW(), NULL),
+('viewer.ruvheneko','ruvheneko.view@muast.ac.zw','$2a$12$yFk88RqKP/XfsDgf32MG6OU.qubhhYwiAXSwqRML5DEEvAI7owLBS','Ruvheneko','Sithole', TRUE, TRUE, TRUE, TRUE, TRUE, NOW(), NULL),
+
+-- ========================
+-- USER (basic) users (7)
+-- ========================
+('user.tendai',  'tendai.user@muast.ac.zw',  '$2a$12$yFk88RqKP/XfsDgf32MG6OU.qubhhYwiAXSwqRML5DEEvAI7owLBS', 'Tendai',  'Makoni', TRUE, TRUE, TRUE, TRUE, TRUE, NOW(), NULL),
+('user.chipo',   'chipo.user@muast.ac.zw',   '$2a$12$yFk88RqKP/XfsDgf32MG6OU.qubhhYwiAXSwqRML5DEEvAI7owLBS', 'Chipo',   'Mutasa', TRUE, TRUE, TRUE, TRUE, TRUE, NOW(), NULL),
+('user.tawanda', 'tawanda.user@muast.ac.zw', '$2a$12$yFk88RqKP/XfsDgf32MG6OU.qubhhYwiAXSwqRML5DEEvAI7owLBS', 'Tawanda', 'Gumbo',  TRUE, TRUE, TRUE, TRUE, TRUE, NOW(), NULL),
+('user.tafadzwa','tafadzwa.user@muast.ac.zw','$2a$12$yFk88RqKP/XfsDgf32MG6OU.qubhhYwiAXSwqRML5DEEvAI7owLBS', 'Tafadzwa','Zhou',   TRUE, TRUE, TRUE, TRUE, TRUE, NOW(), NULL),
+('user.ruvarashe','ruvarashe.user@muast.ac.zw','$2a$12$yFk88RqKP/XfsDgf32MG6OU.qubhhYwiAXSwqRML5DEEvAI7owLBS','Ruvarashe','Chiota',TRUE, TRUE, TRUE, TRUE, TRUE, NOW(), NULL),
+('user.kudakwashe','kudakwashe.user@muast.ac.zw','$2a$12$yFk88RqKP/XfsDgf32MG6OU.qubhhYwiAXSwqRML5DEEvAI7owLBS','Kudakwashe','Mbedzi',TRUE, TRUE, TRUE, TRUE, TRUE, NOW(), NULL),
+('user.anesu',   'anesu.user@muast.ac.zw',   '$2a$12$yFk88RqKP/XfsDgf32MG6OU.qubhhYwiAXSwqRML5DEEvAI7owLBS', 'Anesu',   'Shumba', TRUE, TRUE, TRUE, TRUE, TRUE, NOW(), NULL);
 
 -- =============================================
--- 5. USER-ROLE ASSIGNMENTS
+-- 4. USER-ROLE ASSIGNMENTS
 -- =============================================
 
 -- ADMIN users (Role ID 4)
 INSERT INTO user_roles (user_id, role_id)
-SELECT u.id, 4
-FROM users u 
-WHERE u.username IN ('admin.john', 'admin.jane');
+SELECT u.id, 4 FROM users u
+WHERE u.username IN ('admin.john', 'admin.jane', 'admin.tom');
 
 -- IT_STAFF users (Role ID 2)
 INSERT INTO user_roles (user_id, role_id)
-SELECT u.id, 2
-FROM users u 
-WHERE u.username IN ('it.mary', 'it.peter', 'it.sarah');
+SELECT u.id, 2 FROM users u
+WHERE u.username IN (
+    'it.mary', 'it.peter', 'it.sarah', 'it.james', 'it.patience',
+    'it.brian', 'it.rutendo', 'it.tinashe', 'it.farai', 'it.kudzai'
+);
 
 -- VIEWER users (Role ID 3)
 INSERT INTO user_roles (user_id, role_id)
-SELECT u.id, 3
-FROM users u 
-WHERE u.username IN ('viewer.david', 'viewer.linda');
+SELECT u.id, 3 FROM users u
+WHERE u.username IN (
+    'viewer.david', 'viewer.linda', 'viewer.charles', 'viewer.grace',
+    'viewer.tapiwa', 'viewer.nyasha', 'viewer.fungai', 'viewer.tsitsi',
+    'viewer.takunda', 'viewer.ruvheneko'
+);
 
 -- USER (basic) users (Role ID 1)
 INSERT INTO user_roles (user_id, role_id)
-SELECT u.id, 1
-FROM users u 
-WHERE u.username IN ('user.tendai', 'user.chipo', 'user.tawanda');
+SELECT u.id, 1 FROM users u
+WHERE u.username IN (
+    'user.tendai', 'user.chipo', 'user.tawanda', 'user.tafadzwa',
+    'user.ruvarashe', 'user.kudakwashe', 'user.anesu'
+);
 
 -- =============================================
--- SUMMARY: USER-ROLE-PERMISSION MATRIX
+-- SUMMARY
 -- =============================================
 
 /*
-┌─────────────────┬───────────┬──────────────────────────────────────────────────────────┐
-│ User            │ Role      │ Permissions                                              │
-├─────────────────┼───────────┼──────────────────────────────────────────────────────────┤
-│ admin.john      │ ADMIN     │ ALL permissions                                          │
-│ admin.jane      │ ADMIN     │ ALL permissions                                          │
-├─────────────────┼───────────┼──────────────────────────────────────────────────────────┤
-│ it.mary         │ IT_STAFF  │ READ_USERS, MANAGE_ASSETS, READ_ASSETS,                  │
-│ it.peter        │ IT_STAFF  │ READ_LOCATIONS, READ_ASSET_CATALOG,                      │
-│ it.sarah        │ IT_STAFF  │ VIEW_REPORTS, EXPORT_REPORTS                             │
-├─────────────────┼───────────┼──────────────────────────────────────────────────────────┤
-│ viewer.david    │ VIEWER    │ READ_USERS, READ_ASSETS, READ_LOCATIONS,                 │
-│ viewer.linda    │ VIEWER    │ READ_ASSET_CATALOG, VIEW_REPORTS                         │
-├─────────────────┼───────────┼──────────────────────────────────────────────────────────┤
-│ user.tendai     │ USER      │ None                                                     │
-│ user.chipo      │ USER      │ None                                                     │
-│ user.tawanda    │ USER      │ None                                                     │
-└─────────────────┴───────────┴──────────────────────────────────────────────────────────┘
+┌──────────────────┬──────────┬───────┐
+│ Role             │ Count    │ Perms │
+├──────────────────┼──────────┼───────┤
+│ ADMIN            │     3    │   13  │
+│ IT_STAFF         │    10    │    7  │
+│ VIEWER           │    10    │    5  │
+│ USER             │     7    │    0  │
+├──────────────────┼──────────┼───────┤
+│ TOTAL            │    30    │       │
+└──────────────────┴──────────┴───────┘
 
-Credentials:
-  All users: secret123
-
-Permissions List:
-  ADMIN    (13): MANAGE_USERS, READ_USERS, MANAGE_ROLES, READ_ROLES,
-                  MANAGE_ASSETS, READ_ASSETS, MANAGE_LOCATIONS, READ_LOCATIONS,
-                  MANAGE_ASSET_CATALOG, READ_ASSET_CATALOG,
-                  VIEW_REPORTS, EXPORT_REPORTS, VIEW_AUDIT_LOGS
-
-  IT_STAFF  (7): READ_USERS, MANAGE_ASSETS, READ_ASSETS,
-                  READ_LOCATIONS, READ_ASSET_CATALOG,
-                  VIEW_REPORTS, EXPORT_REPORTS
-
-  VIEWER    (5): READ_USERS, READ_ASSETS, READ_LOCATIONS,
-                  READ_ASSET_CATALOG, VIEW_REPORTS
-
-  USER      (0): None
+Credentials: All users = password123
 */

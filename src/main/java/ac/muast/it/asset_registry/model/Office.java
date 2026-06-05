@@ -21,7 +21,7 @@ public class Office {
     @Column(unique = true, nullable = false, length = 50)
     private String code;              // e.g., "IT_OFFICE"
 
-    @Column(unique = true, nullable = false, length = 50)
+    @Column(nullable = false, length = 50)
     private String name;              // e.g., "IT Office"
 
     @Column(columnDefinition = "TEXT")

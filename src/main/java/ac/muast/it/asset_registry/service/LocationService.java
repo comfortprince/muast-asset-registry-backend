@@ -150,6 +150,7 @@ public class LocationService {
             .name(campus.getName())
             .description(campus.getDescription())
             .address(campus.getAddress())
+            .numOfOffices(campus.getOffices() != null ? campus.getOffices().size() : 0)
             .build();
     }
 

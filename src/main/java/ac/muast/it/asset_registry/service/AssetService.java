@@ -62,8 +62,13 @@ public class AssetService {
     }
 
     @Transactional(readOnly = true)
-    public Page<AssetResponse> getAllAssets(Pageable pageable) {
-        return assetRepository.findAll(pageable).map(this::mapToResponse);
+    public Page<AssetResponse> getAllAssets(
+        Pageable pageable, AssetStatus status, 
+        Long assetTypeId, String brand, 
+        String serialNumber, String assetCode
+    ) { 
+        Page<Asset> assets = assetRepository.findFiltered(status, assetTypeId, brand, serialNumber, assetCode, pageable);
+        return assets.map(this::mapToResponse);
     }
 
     @Transactional(readOnly = true)
