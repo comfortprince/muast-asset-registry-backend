@@ -22,7 +22,7 @@ import java.util.stream.Collectors;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class User implements UserDetails {
+public class User implements UserDetails, Auditable {
     
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

@@ -6,6 +6,7 @@ import ac.muast.it.asset_registry.dto.request.UpdateUserRequest;
 import ac.muast.it.asset_registry.dto.response.UserResponse;
 import ac.muast.it.asset_registry.exception.ResourceNotFoundException;
 import ac.muast.it.asset_registry.exception.UserAlreadyExistsException;
+import ac.muast.it.asset_registry.model.AuditAction;
 import ac.muast.it.asset_registry.model.Role;
 import ac.muast.it.asset_registry.model.User;
 import ac.muast.it.asset_registry.repository.RoleRepository;
@@ -30,6 +31,7 @@ public class UserService {
     private final UserRepository userRepository;
     private final RoleRepository roleRepository;
     private final PasswordEncoder passwordEncoder;
+    private final AuditService auditService;
 
     @Transactional
     @PreAuthorize("hasAuthority('CREATE_USERS')")
@@ -65,13 +67,15 @@ public class UserService {
             .build();
 
         User saved = userRepository.save(user);
+        auditService.log(AuditAction.CREATED, saved);
         return mapToResponse(saved);
     }
 
     @Transactional(readOnly = true)
     @PreAuthorize("hasAuthority('READ_USERS')")
     public Page<UserResponse> getAllUsers(Pageable pageable) {
-        return userRepository.findAll(pageable).map(this::mapToResponse);
+        Page<User> users = userRepository.findAll(pageable);
+        return users.map(this::mapToResponse);
     }
 
     @Transactional(readOnly = true)
@@ -85,8 +89,9 @@ public class UserService {
     @Transactional(readOnly = true)
     @PreAuthorize("hasAuthority('READ_USERS')")
     public User getUserByUsername(String username) {
-        return userRepository.findByUsername(username)
+        User user = userRepository.findByUsername(username)
             .orElseThrow(() -> new ResourceNotFoundException("User not found: " + username));
+        return user;
     }
 
     @Transactional
@@ -94,6 +99,8 @@ public class UserService {
     public UserResponse updateUser(Long id, UpdateUserRequest request) {
         User user = userRepository.findById(id)
             .orElseThrow(() -> new ResourceNotFoundException("User not found: " + id));
+
+        String oldValues = auditService.toJson(user);
 
         user.setFirstName(request.getFirstName());
         user.setLastName(request.getLastName());
@@ -117,7 +124,9 @@ public class UserService {
             user.setEnabled(request.getEnabled());
         }
 
-        return mapToResponse(userRepository.save(user));
+        User saved = userRepository.save(user);
+        auditService.log(AuditAction.UPDATED, saved, oldValues);
+        return mapToResponse(saved);
     }
 
     @Transactional
@@ -125,8 +134,11 @@ public class UserService {
     public void toggleUserStatus(Long id, boolean enabled) {
         User user = userRepository.findById(id)
             .orElseThrow(() -> new ResourceNotFoundException("User not found: " + id));
+
+        String oldValues = auditService.toJson(user);
         user.setEnabled(enabled);
-        userRepository.save(user);
+        User saved = userRepository.save(user);
+        auditService.log(AuditAction.UPDATED, saved, oldValues);
     }
 
     @Transactional(readOnly = true)
