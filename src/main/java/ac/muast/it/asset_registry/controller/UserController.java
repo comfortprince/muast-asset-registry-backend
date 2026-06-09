@@ -15,7 +15,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
@@ -28,13 +27,11 @@ public class UserController {
     private final UserService userService;
 
     @PostMapping
-    @PreAuthorize("hasAuthority('MANAGE_USERS')")
     public ResponseEntity<UserResponse> createUser(@Valid @RequestBody CreateUserRequest request) {
         return ResponseEntity.ok(userService.createUser(request));
     }
 
     @GetMapping
-    @PreAuthorize("hasAuthority('READ_USERS')")
     public ResponseEntity<Page<UserResponse>> getAllUsers(
         @RequestParam(defaultValue = "0") @Min(0) int page,
         @RequestParam(defaultValue = "20") @Min(1) int size
@@ -44,13 +41,11 @@ public class UserController {
     }
 
     @GetMapping("/{id}")
-    @PreAuthorize("hasAuthority('READ_USERS')")
     public ResponseEntity<UserResponse> getUser(@PathVariable Long id) {
         return ResponseEntity.ok(userService.getUserById(id));
     }
 
     @PutMapping("/{id}")
-    @PreAuthorize("hasAuthority('MANAGE_USERS')")
     public ResponseEntity<UserResponse> updateUser(
         @PathVariable Long id,
         @Valid @RequestBody UpdateUserRequest request
@@ -59,7 +54,6 @@ public class UserController {
     }
 
     @PatchMapping("/{id}/toggle-status")
-    @PreAuthorize("hasAuthority('MANAGE_USERS')")
     public ResponseEntity<Void> toggleStatus(
         @PathVariable Long id,
         @RequestParam boolean enabled
@@ -69,7 +63,6 @@ public class UserController {
     }
 
     @GetMapping("/search")
-    @PreAuthorize("hasAuthority('READ_USERS')")
     public ResponseEntity<List<UserResponse>> searchUsers(@RequestParam String username) {
         return ResponseEntity.ok(userService.searchUsers(username));
     }

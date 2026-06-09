@@ -13,6 +13,7 @@ import ac.muast.it.asset_registry.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -31,6 +32,7 @@ public class UserService {
     private final PasswordEncoder passwordEncoder;
 
     @Transactional
+    @PreAuthorize("hasAuthority('CREATE_USERS')")
     public UserResponse createUser(CreateUserRequest request) {
         if (userRepository.existsByUsername(request.getUsername())) {
             throw new UserAlreadyExistsException("Username already exists: " + request.getUsername());
@@ -67,11 +69,13 @@ public class UserService {
     }
 
     @Transactional(readOnly = true)
+    @PreAuthorize("hasAuthority('READ_USERS')")
     public Page<UserResponse> getAllUsers(Pageable pageable) {
         return userRepository.findAll(pageable).map(this::mapToResponse);
     }
 
     @Transactional(readOnly = true)
+    @PreAuthorize("hasAuthority('READ_USERS')")
     public UserResponse getUserById(Long id) {
         User user = userRepository.findById(id)
             .orElseThrow(() -> new ResourceNotFoundException("User not found: " + id));
@@ -79,12 +83,14 @@ public class UserService {
     }
 
     @Transactional(readOnly = true)
+    @PreAuthorize("hasAuthority('READ_USERS')")
     public User getUserByUsername(String username) {
         return userRepository.findByUsername(username)
             .orElseThrow(() -> new ResourceNotFoundException("User not found: " + username));
     }
 
     @Transactional
+    @PreAuthorize("hasAuthority('EDIT_USERS')")
     public UserResponse updateUser(Long id, UpdateUserRequest request) {
         User user = userRepository.findById(id)
             .orElseThrow(() -> new ResourceNotFoundException("User not found: " + id));
@@ -115,6 +121,7 @@ public class UserService {
     }
 
     @Transactional
+    @PreAuthorize("hasAuthority('EDIT_USERS')")
     public void toggleUserStatus(Long id, boolean enabled) {
         User user = userRepository.findById(id)
             .orElseThrow(() -> new ResourceNotFoundException("User not found: " + id));
@@ -123,6 +130,7 @@ public class UserService {
     }
 
     @Transactional(readOnly = true)
+    @PreAuthorize("hasAuthority('READ_USERS')")
     public List<UserResponse> searchUsers(String username) {
         if (username == null || username.isBlank()) {
             return List.of();
