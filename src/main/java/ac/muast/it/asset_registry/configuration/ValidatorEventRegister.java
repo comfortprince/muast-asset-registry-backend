@@ -5,7 +5,6 @@ import java.util.List;
 import java.util.Map;
 
 import org.springframework.beans.factory.InitializingBean;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.rest.core.event.ValidatingRepositoryEventListener;
 import org.springframework.validation.Validator;
@@ -13,11 +12,14 @@ import org.springframework.validation.Validator;
 @Configuration
 public class ValidatorEventRegister implements InitializingBean {
 
-    @Autowired
-    ValidatingRepositoryEventListener validatingRepositoryEventListener;
+    final ValidatingRepositoryEventListener validatingRepositoryEventListener;
 
-    @Autowired
-    private Map<String, Validator> validators;
+    private final Map<String, Validator> validators;
+
+    ValidatorEventRegister(ValidatingRepositoryEventListener validatingRepositoryEventListener, Map<String, Validator> validators) {
+        this.validatingRepositoryEventListener = validatingRepositoryEventListener;
+        this.validators = validators;
+    }
 
     @Override
     public void afterPropertiesSet() throws Exception {
