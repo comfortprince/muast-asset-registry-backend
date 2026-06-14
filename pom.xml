@@ -9,8 +9,8 @@
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
 	<groupId>ac.muast.it</groupId>
-	<artifactId>asset_registry</artifactId>
-	<version>0.0.1-SNAPSHOT</version>
+	<artifactId>asset_register</artifactId>
+	<version>0.1.0</version>
 	<name/>
 	<description/>
 	<url/>
@@ -119,10 +119,6 @@
 			<groupId>io.jsonwebtoken</groupId>
 			<artifactId>jjwt</artifactId>
 			<version>0.13.0</version>
-		</dependency>
-		<dependency>
-			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-starter-data-rest</artifactId>
 		</dependency>
 	</dependencies>
 

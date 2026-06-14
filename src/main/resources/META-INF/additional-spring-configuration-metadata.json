@@ -1,0 +1,12 @@
+{"properties": [
+  {
+    "name": "rsa.private-key",
+    "type": "java.lang.String",
+    "description": "Private key for RSA encryption, used for signing JWT tokens."
+  },
+  {
+    "name": "rsa.public-key",
+    "type": "java.lang.String",
+    "description": "Public key for RSA encryption, used for validating JWT tokens."
+  }
+]}
