@@ -3,6 +3,7 @@ package ac.muast.it.asset_register.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -33,6 +34,7 @@ public class AssetManagementService {
     private final AssetStatusService assetStatusService;
 
     @Transactional
+    @PreAuthorize("hasAuthority('MANAGE_ASSETS')")
     public AssetResponse assignAsset(Long id, AssignAssetRequest request) {
         Asset asset = assetRepository.findById(id)
             .orElseThrow(() -> new ResourceNotFoundException("Asset not found: " + id));
@@ -44,14 +46,12 @@ public class AssetManagementService {
 
         LocalDateTime now = LocalDateTime.now();
 
-        // Close current assignment
         assignmentHistoryRepository.findCurrentByAssetId(asset.getId(), AssetHistory.MAX_VALID_TO)
             .ifPresent(current -> {
                 current.setValidTo(now);
                 assignmentHistoryRepository.save(current);
             });
 
-        // Create new assignment
         AssetAssignmentHistory assignment = AssetAssignmentHistory.builder()
             .asset(asset)
             .user(user)
@@ -62,10 +62,8 @@ public class AssetManagementService {
             .build();
         assignmentHistoryRepository.save(assignment);
 
-        // Update status
         closeCurrentStatus(asset, now);
-
-        AssetStatus assignedStatus = assetStatusService.getByName(AssetStatus.ASSIGNED);
+        AssetStatus assignedStatus = assetStatusService.getByName("ASSIGNED");
         createStatusHistory(asset, assignedStatus, "Assigned to " + user.getUsername(), now);
         asset.setCurrentStatus(assignedStatus);
 
@@ -75,6 +73,7 @@ public class AssetManagementService {
     }
 
     @Transactional
+    @PreAuthorize("hasAuthority('MANAGE_ASSETS')")
     public AssetResponse transferAsset(Long id, TransferAssetRequest request) {
         Asset asset = assetRepository.findById(id)
             .orElseThrow(() -> new ResourceNotFoundException("Asset not found: " + id));
@@ -86,14 +85,12 @@ public class AssetManagementService {
 
         LocalDateTime now = LocalDateTime.now();
 
-        // Close current location
         locationHistoryRepository.findCurrentByAssetId(asset.getId(), AssetHistory.MAX_VALID_TO)
             .ifPresent(current -> {
                 current.setValidTo(now);
                 locationHistoryRepository.save(current);
             });
 
-        // Create new location
         AssetLocationHistory location = AssetLocationHistory.builder()
             .asset(asset)
             .office(office)
@@ -108,9 +105,10 @@ public class AssetManagementService {
     }
 
     @Transactional
-    public AssetResponse checkinAsset(Long asset_id, CheckinAssetRequest request) {
-        Asset asset = assetRepository.findById(asset_id)
-            .orElseThrow(() -> new ResourceNotFoundException("Asset not found: " + asset_id));
+    @PreAuthorize("hasAuthority('MANAGE_ASSETS')")
+    public AssetResponse checkinAsset(Long assetId, CheckinAssetRequest request) {
+        Asset asset = assetRepository.findById(assetId)
+            .orElseThrow(() -> new ResourceNotFoundException("Asset not found: " + assetId));
 
         Office returnOffice = officeRepository.findById(request.getReturnOfficeId())
             .orElseThrow(() -> new ResourceNotFoundException("Office not found: " + request.getReturnOfficeId()));
@@ -119,45 +117,38 @@ public class AssetManagementService {
 
         LocalDateTime now = LocalDateTime.now();
 
-        // Close current assignment
         assignmentHistoryRepository.findCurrentByAssetId(asset.getId(), AssetHistory.MAX_VALID_TO)
             .ifPresent(current -> {
                 current.setValidTo(now);
                 assignmentHistoryRepository.save(current);
             });
 
-        // Close current location
         locationHistoryRepository.findCurrentByAssetId(asset.getId(), AssetHistory.MAX_VALID_TO)
             .ifPresent(current -> {
                 current.setValidTo(now);
                 locationHistoryRepository.save(current);
             });
 
-        // Create new location
         AssetLocationHistory location = AssetLocationHistory.builder()
             .asset(asset)
             .office(returnOffice)
-            .notes("Transferred to " + returnOffice.getName())
+            .notes("Checked in to " + returnOffice.getName())
             .validFrom(now)
             .validTo(AssetHistory.MAX_VALID_TO)
             .build();
         locationHistoryRepository.save(location);
 
-        // Update status
         closeCurrentStatus(asset, now);
-        AssetStatus assignedStatus = assetStatusService.getByName(AssetStatus.AVAILABLE);
-        createStatusHistory(
-            asset, 
-            assignedStatus, 
-            request.getNotes() != null ? request.getNotes() : "Checked in", 
-            now
-        );
-        asset.setCurrentStatus(assignedStatus);
+        AssetStatus availableStatus = assetStatusService.getByName("AVAILABLE");
+        createStatusHistory(asset, availableStatus,
+            request.getNotes() != null ? request.getNotes() : "Checked in", now);
+        asset.setCurrentStatus(availableStatus);
 
         return assetService.mapToResponse(assetRepository.save(asset));
     }
 
     @Transactional
+    @PreAuthorize("hasAuthority('MANAGE_ASSETS')")
     public AssetResponse markForRepair(Long id, MarkForRepairRequest request) {
         Asset asset = assetRepository.findById(id)
             .orElseThrow(() -> new ResourceNotFoundException("Asset not found: " + id));
@@ -167,19 +158,16 @@ public class AssetManagementService {
         LocalDateTime now = LocalDateTime.now();
 
         closeCurrentStatus(asset, now);
-        AssetStatus assignedStatus = assetStatusService.getByName(AssetStatus.IN_REPAIR);
-        createStatusHistory(
-            asset, 
-            assignedStatus, 
-            request.getNotes() != null ? request.getNotes() : "Asset " + id + "marked for repair", 
-            now
-        );
-        asset.setCurrentStatus(assignedStatus);
+        AssetStatus repairStatus = assetStatusService.getByName("IN_REPAIR");
+        createStatusHistory(asset, repairStatus,
+            request.getNotes() != null ? request.getNotes() : "Marked for repair", now);
+        asset.setCurrentStatus(repairStatus);
 
         return assetService.mapToResponse(assetRepository.save(asset));
     }
 
     @Transactional
+    @PreAuthorize("hasAuthority('MANAGE_ASSETS')")
     public AssetResponse markAsLost(Long id, String notes) {
         Asset asset = assetRepository.findById(id)
             .orElseThrow(() -> new ResourceNotFoundException("Asset not found: " + id));
@@ -188,7 +176,6 @@ public class AssetManagementService {
 
         LocalDateTime now = LocalDateTime.now();
 
-        // Close current assignment
         assignmentHistoryRepository.findCurrentByAssetId(id, AssetHistory.MAX_VALID_TO)
             .ifPresent(current -> {
                 current.setValidTo(now);
@@ -196,24 +183,23 @@ public class AssetManagementService {
                 assignmentHistoryRepository.save(current);
             });
 
-        // Close current location
         locationHistoryRepository.findCurrentByAssetId(asset.getId(), AssetHistory.MAX_VALID_TO)
             .ifPresent(current -> {
                 current.setValidTo(now);
                 locationHistoryRepository.save(current);
             });
 
-        // Update status
         closeCurrentStatus(asset, now);
-        AssetStatus assignedStatus = assetStatusService.getByName(AssetStatus.LOST);
-        createStatusHistory(asset, assignedStatus, notes, now);
-        asset.setCurrentStatus(assignedStatus);
+        AssetStatus lostStatus = assetStatusService.getByName("LOST");
+        createStatusHistory(asset, lostStatus, notes, now);
+        asset.setCurrentStatus(lostStatus);
         asset.setNotes(notes);
 
         return assetService.mapToResponse(assetRepository.save(asset));
     }
 
     @Transactional
+    @PreAuthorize("hasAuthority('MANAGE_ASSETS')")
     public AssetResponse decommissionAsset(Long id, String notes) {
         Asset asset = assetRepository.findById(id)
             .orElseThrow(() -> new ResourceNotFoundException("Asset not found: " + id));
@@ -222,52 +208,48 @@ public class AssetManagementService {
 
         LocalDateTime now = LocalDateTime.now();
 
-        // Close current assignment
         assignmentHistoryRepository.findCurrentByAssetId(asset.getId(), AssetHistory.MAX_VALID_TO)
             .ifPresent(current -> {
                 current.setValidTo(now);
                 assignmentHistoryRepository.save(current);
             });
 
-        // Close current location
         locationHistoryRepository.findCurrentByAssetId(asset.getId(), AssetHistory.MAX_VALID_TO)
             .ifPresent(current -> {
                 current.setValidTo(now);
                 locationHistoryRepository.save(current);
             });
 
-        // Update status
         closeCurrentStatus(asset, now);
-        AssetStatus assignedStatus = assetStatusService.getByName(AssetStatus.DECOMMISSIONED);
-        createStatusHistory(asset, assignedStatus, notes, now);
-        asset.setCurrentStatus(assignedStatus);
+        AssetStatus decommissionedStatus = assetStatusService.getByName("DECOMMISSIONED");
+        createStatusHistory(asset, decommissionedStatus, notes, now);
+        asset.setCurrentStatus(decommissionedStatus);
         asset.setNotes(notes);
 
         return assetService.mapToResponse(assetRepository.save(asset));
     }
 
     @Transactional
+    @PreAuthorize("hasAuthority('MANAGE_ASSETS')")
     public AssetResponse recoverAsset(Long id, RecoverAssetRequest request) {
         Asset asset = assetRepository.findById(id)
             .orElseThrow(() -> new ResourceNotFoundException("Asset not found: " + id));
 
-        AssetStatus currentStatus = asset.getCurrentStatus();
-        AssetStatus lostStatus = assetStatusService.getByName(AssetStatus.LOST);
-        AssetStatus decommissionedStatus = assetStatusService.getByName(AssetStatus.DECOMMISSIONED);
-        if (currentStatus.getId().equals(lostStatus.getId())) {   
-            validateAction(asset, AssetStatus.Action.RECOVER);
-        } else if (currentStatus.getId().equals(decommissionedStatus.getId())) {
-            validateAction(asset, AssetStatus.Action.RECOVER);
-        } else {
+        String currentName = asset.getCurrentStatus().getName();
+        if (!AssetStatus.LOST.equals(currentName) && !AssetStatus.DECOMMISSIONED.equals(currentName)) {
             throw new IllegalStateException("Recovery only available for LOST or DECOMMISSIONED assets");
         }
 
+        validateAction(asset, AssetStatus.Action.RECOVER);
+
         LocalDateTime now = LocalDateTime.now();
+        AssetStatus targetStatus = assetStatusService.getById(request.getTargetStatusId());
 
         closeCurrentStatus(asset, now);
-        createStatusHistory(asset, assetStatusService.getById(request.getTargetStatusId()), "Recovered from " + currentStatus.getName(), now);
-        asset.setCurrentStatus(assetStatusService.getById(request.getTargetStatusId()));
-        asset.setNotes((asset.getNotes() != null ? asset.getNotes() + " | " : "") + "Recovered from " + currentStatus.getName() + " on " + now);
+        createStatusHistory(asset, targetStatus, "Recovered from " + currentName, now);
+        asset.setCurrentStatus(targetStatus);
+        asset.setNotes((asset.getNotes() != null ? asset.getNotes() + " | " : "")
+            + "Recovered from " + currentName + " on " + now);
 
         return assetService.mapToResponse(assetRepository.save(asset));
     }

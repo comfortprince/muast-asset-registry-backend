@@ -8,7 +8,6 @@ import lombok.Data;
 @Builder
 public class PermissionResponse {
     private String name;
-    private String displayName;
     private String description;
     private String module;
 }

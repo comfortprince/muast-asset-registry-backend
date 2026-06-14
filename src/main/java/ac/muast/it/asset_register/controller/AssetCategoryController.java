@@ -25,7 +25,7 @@ public class AssetCategoryController {
     private final AssetCategoryRepository categoryRepository;
 
     @PostMapping
-    @PreAuthorize("hasAuthority('MANAGE_ASSET_CATALOG')")
+    @PreAuthorize("hasAuthority('MANAGE_ASSET_CATEGORIES')")
     public ResponseEntity<AssetCategoryResponse> createCategory(@Valid @RequestBody AssetCategoryRequest request) {
         AssetCategory category = AssetCategory.builder()
             .name(request.getName())
@@ -35,7 +35,7 @@ public class AssetCategoryController {
     }
 
     @GetMapping
-    @PreAuthorize("hasAuthority('READ_ASSET_CATALOG')")
+    @PreAuthorize("hasAuthority('READ_ASSET_CATEGORIES')")
     public ResponseEntity<List<AssetCategoryResponse>> getAllCategories() {
         return ResponseEntity.ok(
             categoryRepository.findAll().stream()
@@ -45,7 +45,7 @@ public class AssetCategoryController {
     }
 
     @GetMapping("/{id}")
-    @PreAuthorize("hasAuthority('READ_ASSET_CATALOG')")
+    @PreAuthorize("hasAuthority('READ_ASSET_CATEGORIES')")
     public ResponseEntity<AssetCategoryResponse> getCategory(@PathVariable Long id) {
         return categoryRepository.findById(id)
             .map(this::mapToResponse)
@@ -54,7 +54,7 @@ public class AssetCategoryController {
     }
 
     @PutMapping("/{id}")
-    @PreAuthorize("hasAuthority('MANAGE_ASSET_CATALOG')")
+    @PreAuthorize("hasAuthority('MANAGE_ASSET_CATEGORIES')")
     public ResponseEntity<AssetCategoryResponse> updateCategory(
         @PathVariable Long id,
         @Valid @RequestBody AssetCategoryRequest request
@@ -67,7 +67,7 @@ public class AssetCategoryController {
     }
 
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasAuthority('MANAGE_ASSET_CATALOG')")
+    @PreAuthorize("hasAuthority('MANAGE_ASSET_CATEGORIES')")
     public ResponseEntity<Void> deleteCategory(@PathVariable Long id) {
         categoryRepository.deleteById(id);
         return ResponseEntity.noContent().build();

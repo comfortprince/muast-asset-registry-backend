@@ -5,6 +5,7 @@ import lombok.RequiredArgsConstructor;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -24,16 +25,19 @@ public class AssetService {
     private final AssetStatusService assetStatusService;
 
     @Transactional
+    @PreAuthorize("hasAuthority('MANAGE_ASSETS')")
     public AssetResponse createAsset(CreateAssetRequest request) {
         AssetCategory category = assetCategoryRepository.findById(request.getAssetCategoryId())
             .orElseThrow(() -> new ResourceNotFoundException("Asset category not found: " + request.getAssetCategoryId()));
+
+        AssetStatus availableStatus = assetStatusService.getByName(AssetStatus.AVAILABLE);
 
         Asset asset = Asset.builder()
             .code(request.getCode())
             .assetCategory(category)
             .brand(request.getBrand())
             .serialNumber(request.getSerialNumber())
-            .currentStatus(assetStatusService.getByName(AssetStatus.AVAILABLE))
+            .currentStatus(availableStatus)
             .purchaseDate(request.getPurchaseDate())
             .purchaseCost(request.getPurchaseCost())
             .specs(request.getSpecs())
@@ -44,7 +48,7 @@ public class AssetService {
 
         AssetStatusHistory statusHistory = AssetStatusHistory.builder()
             .asset(asset)
-            .status(assetStatusService.getByName(AssetStatus.AVAILABLE))
+            .status(availableStatus)
             .reason("Asset created")
             .validFrom(java.time.LocalDateTime.now())
             .validTo(AssetHistory.MAX_VALID_TO)
@@ -55,6 +59,7 @@ public class AssetService {
     }
 
     @Transactional(readOnly = true)
+    @PreAuthorize("hasAuthority('READ_ASSETS')")
     public Page<AssetResponse> getAllAssets(
         Pageable pageable, AssetStatus status,
         Long assetCategoryId, String brand,
@@ -65,6 +70,7 @@ public class AssetService {
     }
 
     @Transactional(readOnly = true)
+    @PreAuthorize("hasAuthority('READ_ASSETS')")
     public AssetResponse getAssetById(Long id) {
         Asset asset = assetRepository.findById(id)
             .orElseThrow(() -> new ResourceNotFoundException("Asset not found: " + id));
@@ -72,6 +78,7 @@ public class AssetService {
     }
 
     @Transactional
+    @PreAuthorize("hasAuthority('MANAGE_ASSETS')")
     public AssetResponse updateAsset(Long id, CreateAssetRequest request) {
         Asset asset = assetRepository.findById(id)
             .orElseThrow(() -> new ResourceNotFoundException("Asset not found: " + id));
@@ -91,6 +98,7 @@ public class AssetService {
     }
 
     @Transactional
+    @PreAuthorize("hasAuthority('MANAGE_ASSETS')")
     public void deleteAsset(Long id) {
         assetRepository.deleteById(id);
     }

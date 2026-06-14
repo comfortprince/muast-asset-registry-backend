@@ -5,6 +5,7 @@ import lombok.RequiredArgsConstructor;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -32,6 +33,7 @@ public class LocationService {
     // =============================================
 
     @Transactional
+    @PreAuthorize("hasAuthority('MANAGE_LOCATIONS')")
     public CampusResponse createCampus(CreateCampusRequest request) {
         Campus campus = Campus.builder()
             .code(request.getCode())
@@ -43,13 +45,15 @@ public class LocationService {
     }
 
     @Transactional(readOnly = true)
+    @PreAuthorize("hasAuthority('READ_LOCATIONS')")
     public List<CampusResponse> getAllCampuses() {
         return campusRepository.findAll().stream()
-        .map(this::mapCampusToResponse)
-        .toList();
+            .map(this::mapCampusToResponse)
+            .toList();
     }
 
     @Transactional(readOnly = true)
+    @PreAuthorize("hasAuthority('READ_LOCATIONS')")
     public CampusResponse getCampusById(Long id) {
         Campus campus = campusRepository.findById(id)
             .orElseThrow(() -> new ResourceNotFoundException("Campus not found: " + id));
@@ -57,6 +61,7 @@ public class LocationService {
     }
 
     @Transactional
+    @PreAuthorize("hasAuthority('MANAGE_LOCATIONS')")
     public CampusResponse updateCampus(Long id, CreateCampusRequest request) {
         Campus campus = campusRepository.findById(id)
             .orElseThrow(() -> new ResourceNotFoundException("Campus not found: " + id));
@@ -67,6 +72,7 @@ public class LocationService {
     }
 
     @Transactional
+    @PreAuthorize("hasAuthority('MANAGE_LOCATIONS')")
     public void deleteCampus(Long id) {
         if (officeRepository.existsByCampusId(id)) {
             throw new IllegalArgumentException("Cannot delete campus with associated offices.");
@@ -79,6 +85,7 @@ public class LocationService {
     // =============================================
 
     @Transactional
+    @PreAuthorize("hasAuthority('MANAGE_LOCATIONS')")
     public OfficeResponse createOffice(Long campusId, CreateOfficeRequest request) {
         Campus campus = campusRepository.findById(campusId)
             .orElseThrow(() -> new ResourceNotFoundException("Campus not found: " + campusId));
@@ -92,13 +99,15 @@ public class LocationService {
             .build();
         return mapOfficeToResponse(officeRepository.save(office));
     }
-    
+
     @Transactional(readOnly = true)
+    @PreAuthorize("hasAuthority('READ_LOCATIONS')")
     public Page<OfficeResponse> getOfficesByCampus(Long campusId, Pageable pageable) {
         return officeRepository.findByCampusId(campusId, pageable).map(this::mapOfficeToResponse);
     }
 
     @Transactional(readOnly = true)
+    @PreAuthorize("hasAuthority('READ_LOCATIONS')")
     public OfficeResponse getOfficeById(Long campusId, Long officeId) {
         Office office = officeRepository.findById(officeId)
             .orElseThrow(() -> new ResourceNotFoundException("Office not found: " + officeId));
@@ -106,6 +115,7 @@ public class LocationService {
     }
 
     @Transactional
+    @PreAuthorize("hasAuthority('MANAGE_LOCATIONS')")
     public OfficeResponse updateOffice(Long campusId, Long officeId, CreateOfficeRequest request) {
         Office office = officeRepository.findById(officeId)
             .orElseThrow(() -> new ResourceNotFoundException("Office not found: " + officeId));
@@ -119,14 +129,16 @@ public class LocationService {
     }
 
     @Transactional
+    @PreAuthorize("hasAuthority('MANAGE_LOCATIONS')")
     public void deleteOffice(Long campusId, Long officeId) {
         officeRepository.deleteById(officeId);
     }
 
     @Transactional(readOnly = true)
+    @PreAuthorize("hasAuthority('READ_LOCATIONS')")
     public List<OfficeResponse> searchOffices(Long campusId, String name) {
         List<Office> offices = List.of();
-        
+
         if (campusId != null && name != null && !name.isBlank()) {
             offices = officeRepository.findByCampusIdAndNameContainingIgnoreCase(campusId, name);
         } else if (campusId != null) {
@@ -134,7 +146,7 @@ public class LocationService {
         } else if (name != null && !name.isBlank()) {
             offices = officeRepository.findByNameContainingIgnoreCase(name);
         }
-        
+
         return offices.stream()
             .map(this::mapOfficeToResponse)
             .toList();

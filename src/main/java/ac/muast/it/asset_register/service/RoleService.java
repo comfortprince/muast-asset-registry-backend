@@ -4,6 +4,7 @@ package ac.muast.it.asset_register.service;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -28,6 +29,7 @@ public class RoleService {
     private final RoleRepository roleRepository;
 
     @Transactional
+    @PreAuthorize("hasAuthority('MANAGE_ROLES')")
     public RoleResponse createRole(CreateRoleRequest request) {
         Set<Permission> permissions = resolvePermissions(request.getPermissions());
 
@@ -40,10 +42,14 @@ public class RoleService {
         return mapToResponse(roleRepository.save(role));
     }
 
+    @Transactional(readOnly = true)
+    @PreAuthorize("hasAuthority('READ_ROLES')")
     public Page<RoleResponse> getAllRoles(Pageable pageable) {
         return roleRepository.findAll(pageable).map(this::mapToResponse);
     }
 
+    @Transactional(readOnly = true)
+    @PreAuthorize("hasAuthority('READ_ROLES')")
     public RoleResponse getRoleById(Long id) {
         Role role = roleRepository.findById(id)
             .orElseThrow(() -> new ResourceNotFoundException("Role not found: " + id));
@@ -51,6 +57,7 @@ public class RoleService {
     }
 
     @Transactional
+    @PreAuthorize("hasAuthority('MANAGE_ROLES')")
     public RoleResponse updateRole(Long id, CreateRoleRequest request) {
         Role role = roleRepository.findById(id)
             .orElseThrow(() -> new ResourceNotFoundException("Role not found: " + id));
@@ -65,10 +72,13 @@ public class RoleService {
     }
 
     @Transactional
+    @PreAuthorize("hasAuthority('MANAGE_ROLES')")
     public void deleteRole(Long id) {
         roleRepository.deleteById(id);
     }
 
+    @Transactional(readOnly = true)
+    @PreAuthorize("hasAuthority('READ_ROLES')")
     public Set<PermissionResponse> getRolePermissions(Long roleId) {
         Role role = roleRepository.findById(roleId)
             .orElseThrow(() -> new ResourceNotFoundException("Role not found: " + roleId));
@@ -78,6 +88,7 @@ public class RoleService {
     }
 
     @Transactional
+    @PreAuthorize("hasAuthority('MANAGE_ROLES')")
     public RoleResponse updateRolePermissions(Long roleId, UpdateRolePermissionsRequest request) {
         Role role = roleRepository.findById(roleId)
             .orElseThrow(() -> new ResourceNotFoundException("Role not found: " + roleId));
@@ -87,6 +98,7 @@ public class RoleService {
     }
 
     @Transactional
+    @PreAuthorize("hasAuthority('MANAGE_ROLES')")
     public void removeRolePermission(Long roleId, String permissionName) {
         Role role = roleRepository.findById(roleId)
             .orElseThrow(() -> new ResourceNotFoundException("Role not found: " + roleId));
@@ -94,12 +106,16 @@ public class RoleService {
         roleRepository.save(role);
     }
 
+    @Transactional(readOnly = true)
+    @PreAuthorize("hasAuthority('READ_ROLES')")
     public List<String> getRoleNames() {
         return roleRepository.findAll().stream()
             .map(Role::getName)
             .toList();
     }
 
+    @Transactional(readOnly = true)
+    @PreAuthorize("hasAuthority('READ_ROLES')")
     public Set<PermissionResponse> getAllPermissions() {
         return Set.of(Permission.values()).stream()
             .map(this::mapPermissionToResponse)
@@ -122,15 +138,14 @@ public class RoleService {
             .name(role.getName())
             .description(role.getDescription())
             .permissions(role.getPermissions().stream()
-                .map(Permission::name)
+                .map(Permission::getName)
                 .collect(Collectors.toSet()))
             .build();
     }
 
     private PermissionResponse mapPermissionToResponse(Permission perm) {
         return PermissionResponse.builder()
-            .name(perm.name())
-            .displayName(perm.getDisplayName())
+            .name(perm.getName())
             .description(perm.getDescription())
             .module(perm.getModule().name())
             .build();
