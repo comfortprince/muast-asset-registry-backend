@@ -4,7 +4,7 @@
 -- Description: Test data for users, roles, and permissions
 -- Order: Run this FIRST
 -- Tables: roles, users, user_roles, role_permissions
--- Note: Permissions are hardcoded enums, not stored in a table
+-- Note: Permissions are hardcoded in the Permission enum
 -- 
 -- Password hash: $2a$12$yFk88RqKP/XfsDgf32MG6OU.qubhhYwiAXSwqRML5DEEvAI7owLBS
 -- Plain text password: "password123"
@@ -26,39 +26,34 @@ ALTER TABLE roles AUTO_INCREMENT = 5;
 -- 2. ROLE-PERMISSION ASSIGNMENTS
 -- =============================================
 
--- 2.1 ADMIN (Role ID 4)
+-- 2.1 ADMIN (Role ID 4) — All permissions
 INSERT INTO role_permissions (role_id, permission_name) VALUES
-(4, 'MANAGE_USERS'),
+(4, 'CREATE_USERS'),
+(4, 'EDIT_USERS'),
 (4, 'READ_USERS'),
 (4, 'MANAGE_ROLES'),
 (4, 'READ_ROLES'),
-(4, 'MANAGE_ASSETS'),
-(4, 'READ_ASSETS'),
 (4, 'MANAGE_LOCATIONS'),
 (4, 'READ_LOCATIONS'),
-(4, 'MANAGE_ASSET_CATALOG'),
-(4, 'READ_ASSET_CATALOG'),
-(4, 'VIEW_REPORTS'),
-(4, 'EXPORT_REPORTS'),
-(4, 'VIEW_AUDIT_LOGS');
+(4, 'MANAGE_ASSETS'),
+(4, 'READ_ASSETS'),
+(4, 'MANAGE_ASSET_CATEGORIES'),
+(4, 'READ_ASSET_CATEGORIES');
 
--- 2.2 IT_STAFF (Role ID 2)
+-- 2.2 IT_STAFF (Role ID 2) — Asset management
 INSERT INTO role_permissions (role_id, permission_name) VALUES
 (2, 'READ_USERS'),
 (2, 'MANAGE_ASSETS'),
 (2, 'READ_ASSETS'),
 (2, 'READ_LOCATIONS'),
-(2, 'READ_ASSET_CATALOG'),
-(2, 'VIEW_REPORTS'),
-(2, 'EXPORT_REPORTS');
+(2, 'READ_ASSET_CATEGORIES');
 
--- 2.3 VIEWER (Role ID 3)
+-- 2.3 VIEWER (Role ID 3) — Read-only
 INSERT INTO role_permissions (role_id, permission_name) VALUES
 (3, 'READ_USERS'),
 (3, 'READ_ASSETS'),
 (3, 'READ_LOCATIONS'),
-(3, 'READ_ASSET_CATALOG'),
-(3, 'VIEW_REPORTS');
+(3, 'READ_ASSET_CATEGORIES');
 
 -- 2.4 USER (Role ID 1) — No permissions
 
@@ -160,13 +155,25 @@ WHERE u.username IN (
 ┌──────────────────┬──────────┬───────┐
 │ Role             │ Count    │ Perms │
 ├──────────────────┼──────────┼───────┤
-│ ADMIN            │     3    │   13  │
-│ IT_STAFF         │    10    │    7  │
-│ VIEWER           │    10    │    5  │
+│ ADMIN            │     3    │   11  │
+│ IT_STAFF         │    10    │    5  │
+│ VIEWER           │    10    │    4  │
 │ USER             │     7    │    0  │
 ├──────────────────┼──────────┼───────┤
 │ TOTAL            │    30    │       │
 └──────────────────┴──────────┴───────┘
 
 Credentials: All users = password123
+
+Permissions:
+  ADMIN   (11): CREATE_USERS, EDIT_USERS, READ_USERS, MANAGE_ROLES, READ_ROLES,
+                 MANAGE_LOCATIONS, READ_LOCATIONS, MANAGE_ASSETS, READ_ASSETS,
+                 MANAGE_ASSET_CATEGORIES, READ_ASSET_CATEGORIES
+
+  IT_STAFF (5): READ_USERS, MANAGE_ASSETS, READ_ASSETS,
+                 READ_LOCATIONS, READ_ASSET_CATEGORIES
+
+  VIEWER   (4): READ_USERS, READ_ASSETS, READ_LOCATIONS, READ_ASSET_CATEGORIES
+
+  USER     (0): None
 */
